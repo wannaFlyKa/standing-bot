@@ -181,10 +181,11 @@ Limits: <what not to touch; time or size limit if the owner gave one>
 The owner's words, quoted: "<the instruction>"
 
 How:
-1. Check out what you need. Follow the target repository's own build, review and change rules. Build before you change anything.
+1. Check out what you need. Build before you change anything.
 2. Find the root cause from evidence. Make the smallest change that fixes it. Build and test after.
-3. A change request is a draft that the owner publishes.
-4. Do not write outward in the owner's name (ticket, Slack, mail) unless this brief names that exact action.
+3. Follow the target repository's own rules for build, review and change requests. If the owner asked for a second review, say so in the brief.
+4. A change request is a draft that the owner publishes.
+5. Do not write outward in the owner's name (ticket, Slack, mail) unless this brief names that exact action.
 
 Done when: <checks that prove it, e.g. build passes, test X passes, draft change request exists>
 
