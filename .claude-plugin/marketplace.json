@@ -1,0 +1,14 @@
+{
+  "name": "standing-bot",
+  "owner": {
+    "name": "Yao Bian"
+  },
+  "description": "The standing-bot plugin, published from its own repository.",
+  "plugins": [
+    {
+      "name": "standing-bot",
+      "source": "./",
+      "description": "Standing bots for T3 Code. Each bot is a folder for its memory, one long-lived thread, scheduled check-ins, and workers that do the work."
+    }
+  ]
+}

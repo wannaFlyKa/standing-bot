@@ -1,0 +1,17 @@
+{
+  "name": "standing-bot",
+  "description": "Standing bots for T3 Code. Each bot is a folder for its memory, one long-lived thread, scheduled check-ins, and workers that do the work.",
+  "author": {
+    "name": "Yao Bian",
+    "url": "https://github.com/wannaFlyKa"
+  },
+  "homepage": "https://github.com/wannaFlyKa/standing-bot",
+  "repository": "https://github.com/wannaFlyKa/standing-bot",
+  "license": "MIT",
+  "keywords": [
+    "t3-code",
+    "bot",
+    "assistant",
+    "scheduled-tasks"
+  ]
+}

@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>standing-bot: a bot that stays, for T3 Code</title>
+<meta name="description" content="A skill that turns a T3 Code thread into a standing bot. One folder for memory, one long-lived thread, scheduled check-ins, and workers that do the work.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230284c7'/%3E%3Ctext x='32' y='32' dy='0.35em' text-anchor='middle' font-family='system-ui, sans-serif' font-size='26' font-weight='600' fill='%23fff'%3ESB%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #526077;
+    --border: #dbe3ec;
+    --accent: #0369a1;
+    --accent-soft: rgba(2, 132, 199, 0.14);
+    --code-bg: #eef2f7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1220;
+      --card: #121b2c;
+      --text: #e6edf5;
+      --muted: #a3b2c6;
+      --border: #26344b;
+      --accent: #5cc4f5;
+      --accent-soft: rgba(92, 196, 245, 0.16);
+      --code-bg: #18233a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 0 20px; }
+  header { padding: 56px 0 8px; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand svg { width: 52px; height: 52px; flex: none; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0; letter-spacing: -0.02em; }
+  .tagline { font-size: 1.3rem; line-height: 1.4; margin: 22px 0 10px; }
+  .lead { color: var(--muted); margin: 0 0 24px; max-width: 62ch; }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn {
+    display: inline-block;
+    padding: 9px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .btn:hover { border-color: var(--accent); }
+  .btn:focus-visible, a:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 2px; }
+  section { padding: 34px 0 6px; }
+  h2 { font-size: 1.35rem; margin: 0 0 12px; letter-spacing: -0.01em; }
+  p { margin: 0 0 14px; }
+  a { color: var(--accent); }
+  code {
+    font: 0.88em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 5px;
+  }
+  pre {
+    margin: 0 0 14px;
+    padding: 14px 16px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow-x: auto;
+  }
+  pre code { background: none; padding: 0; font-size: 0.86rem; }
+
+  .flow { display: grid; justify-items: center; gap: 8px; margin: 20px 0 26px; }
+  .row { display: flex; align-items: stretch; justify-content: center; gap: 10px; width: 100%; }
+  .node {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 14px 14px;
+    text-align: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+  .node.solo { flex: none; width: min(100%, 300px); }
+  .node.main { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  .node b { display: block; font-weight: 650; }
+  .node span { display: block; color: var(--muted); font-size: 0.88rem; line-height: 1.4; margin-top: 2px; }
+  .arrow { align-self: center; flex: none; color: var(--muted); line-height: 0; }
+  .arrow svg { width: 26px; height: 26px; display: block; }
+
+  .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+  .cards li { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+  .cards b { display: block; font-weight: 650; margin-bottom: 4px; }
+  .cards span { color: var(--muted); font-size: 0.95rem; }
+
+  ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+  ol.steps li { position: relative; padding: 0 0 14px 44px; counter-increment: step; }
+  ol.steps li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 0;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 650; font-size: 0.9rem;
+    display: grid; place-items: center;
+  }
+  ul.plain { margin: 0 0 14px; padding-left: 20px; }
+  ul.plain li { margin-bottom: 6px; }
+  footer { margin-top: 40px; padding: 22px 0 44px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.92rem; }
+
+  @media (max-width: 620px) {
+    body { font-size: 16px; }
+    header { padding-top: 36px; }
+    h1 { font-size: 1.8rem; }
+    .tagline { font-size: 1.15rem; }
+    .row { gap: 6px; }
+    .row .node { padding: 12px 6px; }
+    .row .node span { display: none; }
+    .row .arrow svg { width: 20px; height: 20px; }
+    .cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brand">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="standing-bot icon">
+      <rect width="64" height="64" rx="14" fill="#0284c7"/>
+      <text x="32" y="32" dy="0.35em" text-anchor="middle" font-family="system-ui, sans-serif" font-size="26" font-weight="600" fill="#ffffff">SB</text>
+    </svg>
+    <h1>standing-bot</h1>
+  </div>
+  <p class="tagline">A bot that stays. One folder, one thread, scheduled check-ins.</p>
+  <p class="lead">standing-bot is a skill for T3 Code. It turns one thread into an assistant that keeps its memory in files, wakes on a schedule, and hands the work to workers.</p>
+  <div class="links">
+    <a class="btn primary" href="https://github.com/wannaFlyKa/standing-bot">View on GitHub</a>
+    <a class="btn" href="https://github.com/wannaFlyKa/standing-bot#readme">Read the README</a>
+  </div>
+</header>
+
+<main>
+
+<section>
+  <h2>How it works</h2>
+  <div class="flow" role="img" aria-label="Scheduled check-ins wake the bot. You talk to the bot. The bot hands work to workers and reads their results. The bot reads and writes its folder.">
+    <div class="node solo"><b>Scheduled check-ins</b><span>wake the bot</span></div>
+    <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M6 14l6 6 6-6"/></svg></div>
+    <div class="row">
+      <div class="node"><b>You</b><span>talk in the bot's thread</span></div>
+      <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg></div>
+      <div class="node main"><b>The bot</b><span>one long-lived thread, the front desk</span></div>
+      <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg></div>
+      <div class="node"><b>Workers</b><span>one fresh thread for each task</span></div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M7 8l5-5 5 5M7 16l5 5 5-5"/></svg></div>
+    <div class="node solo"><b>The folder</b><span>its memory: the bot file, NOW.md, log, notes, procedures</span></div>
+  </div>
+
+  <ul class="cards">
+    <li><b>The folder is the memory</b><span>Each bot has one folder. <code>NOW.md</code> holds the current view. The log and the notes keep the rest. The chat can be reset at any time.</span></li>
+    <li><b>The thread is the bot</b><span>One long-lived T3 Code thread talks to you and keeps track. It is a front desk. It does not do the work.</span></li>
+    <li><b>Check-ins wake it</b><span>Scheduled tasks start a run: a heartbeat, and daily, weekly or monthly check-ins. You choose which ones are on.</span></li>
+    <li><b>Workers do the work</b><span>Every check and every task goes to a fresh worker thread. The worker reports back in at most 20 lines.</span></li>
+    <li><b>You stay in charge</b><span>A bot changes its goal, rules or check-ins only on your word. It asks before it writes outward or does anything that cannot be undone.</span></li>
+    <li><b>A chief can watch the rest</b><span>One optional bot sees all the others and tells you what waits on you.</span></li>
+  </ul>
+</section>
+
+<section>
+  <h2>A check-in, step by step</h2>
+  <ol class="steps">
+    <li>A scheduled task sends the bot its check-in.</li>
+    <li>The bot reads <code>NOW.md</code> and its check-in table. Outside its hours it answers <code>off hours</code> and stops.</li>
+    <li>It hands the check to one worker, with the procedure to follow.</li>
+    <li>The worker reports. Line 1 says what you must do, or "nothing needed".</li>
+    <li>The bot updates <code>NOW.md</code> and the log.</li>
+    <li>It speaks to you only if line 1 asks something of you. Otherwise it says <code>quiet</code>.</li>
+  </ol>
+</section>
+
+<section>
+  <h2>Start</h2>
+  <p>Install the skill in Claude Code:</p>
+<pre><code>claude plugin marketplace add wannaFlyKa/standing-bot
+claude plugin install standing-bot@standing-bot</code></pre>
+  <p>Then open a thread in T3 Code and say <code>new bot</code>. The skill asks a few questions and sets the bot up.</p>
+  <p>The Codex install and the full guide are in the <a href="https://github.com/wannaFlyKa/standing-bot#readme">README</a>.</p>
+</section>
+
+<section>
+  <h2>Where it stands</h2>
+  <ul class="plain">
+    <li>Tested with Claude Code as the agent, inside T3 Code. Other agents are not tested yet.</li>
+    <li>The tests ran on a private build of T3 Code. The public build was checked by reading its source, not by running it.</li>
+    <li>T3 Code is the only host for now. Other hosts may come later, for example the Claude Code desktop app on its own.</li>
+    <li>The rules are two Markdown files. Nothing enforces them. The README lists the known gaps.</li>
+  </ul>
+</section>
+
+</main>
+
+<footer>
+  MIT License. Made by Yao Bian. Source on <a href="https://github.com/wannaFlyKa/standing-bot">GitHub</a>.
+</footer>
+
+</div>
+</body>
+</html>
