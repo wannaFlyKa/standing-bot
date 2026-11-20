@@ -1,5 +1,3 @@
-<img src="assets/icon.svg" width="64" height="64" alt="">
-
 # standing-bot
 
 A skill that turns a T3 Code thread into a standing bot. The bot stays, keeps its memory in a folder, checks in on a schedule, and hands the work to workers.
@@ -102,7 +100,7 @@ Then run "Restart agent session" from the T3 Code command palette, or start a ne
 
 As a Claude Code plugin the skill is named `standing-bot:standing-bot`. As a copied folder it is `standing-bot`.
 
-Tested: both plugin installs from a local copy of this repository, with Claude Code 2.1.327 and Codex CLI 0.171.0. Not tested: install from GitHub.
+Tested: both plugin installs, from a local copy and from GitHub, with Claude Code 2.1.327 and Codex CLI 0.171.0.
 
 ## Five-minute start
 
@@ -209,7 +207,6 @@ Those tests ran on the private version of the skill. This copy differs from it b
 - A bot that runs on Codex, or on any agent other than Claude Code.
 - A public build of T3 Code.
 - This copy after the changes above.
-- Install from GitHub.
 - The example hook with other server names.
 
 ## Rules version

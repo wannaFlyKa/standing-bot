@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>standing-bot: a bot that stays, for T3 Code</title>
 <meta name="description" content="A skill that turns a T3 Code thread into a standing bot. One folder for memory, one long-lived thread, scheduled check-ins, and workers that do the work.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230284c7'/%3E%3Ctext x='32' y='32' dy='0.35em' text-anchor='middle' font-family='system-ui, sans-serif' font-size='26' font-weight='600' fill='%23fff'%3ESB%3C/text%3E%3C/svg%3E">
 <style>
   :root {
     --bg: #f8fafc;
@@ -39,8 +38,6 @@
   }
   .wrap { max-width: 780px; margin: 0 auto; padding: 0 20px; }
   header { padding: 56px 0 8px; }
-  .brand { display: flex; align-items: center; gap: 14px; }
-  .brand svg { width: 52px; height: 52px; flex: none; }
   h1 { font-size: 2.1rem; line-height: 1.15; margin: 0; letter-spacing: -0.02em; }
   .tagline { font-size: 1.3rem; line-height: 1.4; margin: 22px 0 10px; }
   .lead { color: var(--muted); margin: 0 0 24px; max-width: 62ch; }
@@ -135,13 +132,7 @@
 <div class="wrap">
 
 <header>
-  <div class="brand">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="standing-bot icon">
-      <rect width="64" height="64" rx="14" fill="#0284c7"/>
-      <text x="32" y="32" dy="0.35em" text-anchor="middle" font-family="system-ui, sans-serif" font-size="26" font-weight="600" fill="#ffffff">SB</text>
-    </svg>
-    <h1>standing-bot</h1>
-  </div>
+  <h1>standing-bot</h1>
   <p class="tagline">A bot that stays. One folder, one thread, scheduled check-ins.</p>
   <p class="lead">standing-bot is a skill for T3 Code. It turns one thread into an assistant that keeps its memory in files, wakes on a schedule, and hands the work to workers.</p>
   <div class="links">
