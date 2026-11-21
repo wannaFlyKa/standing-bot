@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^mcp__(?!t3-code__(orchestrator_capabilities|delegate_task|t3_thread_send|t3_thread_read|t3_thread_launch|t3_project_create|t3_project_list|schedule_task|list_scheduled_tasks|run_scheduled_task_now|delete_scheduled_task)$).*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "case \"$T3CODE_THREAD_ID\" in thread:delegated-task:*) exit 0;; *) echo 'Blocked: this thread is not a worker. If you are the bot, hand the task to a worker with delegate_task.' >&2; exit 2;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}

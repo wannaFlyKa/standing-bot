@@ -25,16 +25,18 @@ All bots sit under one bots root. The file `AGENTS.md` in the root is a copy of 
     log/YYYY-MM-DD.md        append only
     notes/ + notes/INDEX.md  lasting knowledge
     procedures/              step files a worker follows
+    .claude/settings.json    the guard, with Claude Code only
 ```
 
 The bot is a front desk. It talks to you, keeps track and remembers. It does not do the work. Each task goes to a worker thread, and the bot reads the result. The chat is not the memory. What matters goes into a file, and the thread can be reset at any time.
 
 One optional chief bot sees the other bots and tells you what waits on you.
 
-The whole behaviour is two Markdown files. There is no code.
+The whole behaviour is two Markdown files and one settings file. There is no other code.
 
 - `skills/standing-bot/SKILL.md`: setup, change, move, update, new bot, project brief
 - `skills/standing-bot/shared-rules.md`: how every bot behaves
+- `skills/standing-bot/claude-settings.json`: the guard for Claude Code
 
 ## What you need
 
@@ -42,6 +44,7 @@ The whole behaviour is two Markdown files. There is no code.
 - git. The bots root is a local git repository.
 - These T3 Code tools, which an agent has inside a T3 thread: `schedule_task`, `list_scheduled_tasks`, `run_scheduled_task_now`, `delete_scheduled_task`, `delegate_task`, `t3_thread_launch`, `t3_thread_send`, `t3_thread_read`, `t3_project_create`, `t3_project_list`.
 - The environment variable `T3CODE_THREAD_ID`.
+- For the guard: the T3 Code MCP server is named `t3-code`, and the thread id of a worker starts with `thread:delegated-task:`.
 - These fields on T3 messages: `createdBy`, `creationSource`, `senderThreadId`, `messageId`, `runId`, `activeRunId`.
 
 ## Install
@@ -151,13 +154,24 @@ An approval counts once, for the act named in the same message.
 - The bots root is a local git repository. The rules say never push it and never add a remote.
 - A monthly check-in is a daily task that ends at once on every other day.
 
+## The guard
+
+With Claude Code as the agent, setup copies `claude-settings.json` to `<bot folder>/.claude/settings.json`. It is a `PreToolUse` hook, and it holds an allow list.
+
+- In the bot's thread it blocks every MCP tool except the ten T3 Code tools under "What you need" and `orchestrator_capabilities`, which T3 Code asks a thread to call before it starts a worker. The bot can start a worker, send a message to a worker that is running, send a bot message, read a thread, schedule tasks, and start a project. Any other MCP tool call must go to a worker.
+- A worker is not blocked. The hook lets a call pass when `T3CODE_THREAD_ID` starts with `thread:delegated-task:`.
+- A visitor thread in the bot's folder gets the same block as the bot. The hook lets only a worker pass, so a Claude Code session outside T3 Code should get the block in that folder too. That case was not run.
+- The lead thread of a project is not blocked. It runs in the project's own folder, where the bot folder's settings are not loaded.
+- The hook acts in the running session a few seconds after the file is written. The test needed no restart.
+- A bot that was set up before rules version 3 adds the guard when it takes the new rules.
+
 ## Known gaps
 
-- The rules are text. Nothing enforces them.
+- The rules are text. The guard enforces part of one of them, with Claude Code only. Nothing enforces the rest.
+- The guard limits MCP tools only. It does not limit the shell or the agent's built-in tools, such as web fetch and MCP resource reads. The bot's thread can still run any command, so it can still do work itself, reach a service through a command-line tool, or edit the guard file.
+- There is no guard for other agents. Codex CLI 0.171.0 has a hook that can block a tool call by name. In the T3 Code build used here the hook does not get `T3CODE_THREAD_ID`, so it could not tell the bot from a worker. Both were read in the code, not run. Kiro CLI documents such a hook too. Kiro CLI was not installed, and nothing was run.
 - A worker with a shell can send a message that looks like the owner's outside session.
-- A worker with a shell can edit a bot file.
-
-An optional guard for Claude Code is in `examples/claude-settings.json`. Copy it to `<bot folder>/.claude/settings.json` and put your own MCP server names in the matcher. It stops the bot thread from calling those tools itself and allows them in workers, by checking whether `T3CODE_THREAD_ID` starts with `thread:delegated-task:`. It is not part of the skill, and it does not close the gaps above.
+- A worker with a shell can edit a bot file or the guard file.
 
 ## Cost
 
@@ -166,7 +180,7 @@ No usage was measured. What drives it:
 - Each check-in is one turn in the bot's thread plus one worker run.
 - A heartbeat is an interval task, so it also fires outside its hours. Then the bot only answers `off hours`, which is still a short turn.
 - The bot's thread keeps its chat between check-ins, so its context grows until the reset. The default reset is once a day.
-- Every bot session loads the shared rules (about 13,000 characters), the bot file and `NOW.md`.
+- Every bot session loads the shared rules (about 14,000 characters), the bot file and `NOW.md`.
 - The skill adds about 75 tokens to every Claude Code session and about 3,600 when it is used. These are Claude Code's own estimates from `claude plugin details`.
 
 To spend less, use a longer heartbeat or fewer check-ins.
@@ -179,17 +193,28 @@ setup interview, check-ins, hand-off to a worker, chief brief, forged bot messag
 
 Those tests ran on the private version of the skill. This copy differs from it by the new name, a few wording changes and the time zone sentence. It was not run again.
 
+The guard was tested on 2026-11-21 on this copy, as a live hook, with Claude Code 2.1.327 on the same private build of T3 Code, in throwaway folders:
+
+- In a thread that the hook takes for the bot, each of the eleven allowed tools ran. Six other MCP tools were refused: four more T3 Code tools, and one tool each of two other MCP servers. The shell, file reads and tool search still worked.
+- A worker that this thread started was not blocked. It got a message from the thread while it ran, and its result woke the thread. A scheduled task also started a turn in the thread.
+- A lead thread in a project folder outside the bot's folder was not blocked.
+- A test bot under the shared rules ran one scheduled check-in in a fresh session. It handed the check to a worker, the result woke it, it updated `NOW.md` and the log, and it said `quiet`. No tool call was refused in its thread. A visitor thread in its folder was refused.
+- An agent that followed the section "Guard" wrote the guard file: once into a folder with no settings file, and once into a settings file that held the older guard and other entries. In the first case the hook started to block in the same session.
+
 ## What was not tested
 
 - A message typed by a person, which is the `createdBy: user` case.
 - A bot that runs on Codex, or on any agent other than Claude Code.
 - A public build of T3 Code.
-- This copy after the changes above.
-- The example hook with other server names.
+- This copy after the changes above, apart from the guard tests.
+- The setup interview with the guard step, and a bot from before rules version 3 that adds the guard.
+- The guard in a thread that a person made in the app. Every test thread was made through a T3 Code tool.
+- The guard in a Claude Code session outside T3 Code. Its command was run in a shell only.
+- The guard against a tool of an MCP server that a plugin brings.
 
 ## Rules version
 
-The rules carry a version in two places that must match: the line `Rules version: 2` in `shared-rules.md`, and the words "Rules version 2." at the end of the skill description in `SKILL.md`. Bots compare the two to find updates. The description is YAML, so it must not hold a colon followed by a space.
+The rules carry a version in two places that must match: the line `Rules version: 3` in `shared-rules.md`, and the words "Rules version 3." at the end of the skill description in `SKILL.md`. Bots compare the two to find updates. The description is YAML, so it must not hold a colon followed by a space.
 
 ## License
 

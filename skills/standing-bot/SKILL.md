@@ -1,6 +1,6 @@
 ---
 name: standing-bot
-description: Set up, change or create a standing bot that lives in a T3 Code thread with its memory in a folder. Use when a bot file says "Setup pending", or when asked to "set up the bot", "new bot", "change the bot's goal", "change the check-in", or "/standing-bot". Rules version 2.
+description: Set up, change or create a standing bot that lives in a T3 Code thread with its memory in a folder. Use when a bot file says "Setup pending", or when asked to "set up the bot", "new bot", "change the bot's goal", "change the check-in", or "/standing-bot". Rules version 3.
 ---
 
 # standing-bot
@@ -15,6 +15,7 @@ A bot is three things: a folder, a T3 Code project on that folder, and one long-
     log/YYYY-MM-DD.md        append only
     notes/ + notes/INDEX.md  lasting knowledge
     procedures/              step files a worker follows
+    .claude/settings.json    the guard, with Claude Code only
 ```
 
 The shared rules in `<bots root>/AGENTS.md` say how every bot behaves; their source is `shared-rules.md` in this skill's folder. The owner is the person the bot works for: the one who talks to it in its thread.
@@ -68,7 +69,7 @@ Questions, in this order:
    For each one that is on, ask what it should do in one line (for example "run procedures/check.md", "report against the key results").
    - context reset: when the thread's chat is cleared. Default: once a day, at the daily check-in (at 04:00 local time when there is no daily check-in). Other choices: at every check-in, or never (the agent's own compaction only).
 6. **May do without asking / must ask first.** Read out the default: it may read everything it can reach, write its own folder, and start workers; it must ask before any outward write (ticket, Slack, mail, publishing a change request) and before anything that cannot be undone. Ask what to add or remove.
-7. **Sources and tools.** What it should watch or read (queues, channels, mailboxes, dashboards, files). For each, check now that a tool for it is reachable and say plainly which are not.
+7. **Sources and tools.** What it should watch or read (queues, channels, mailboxes, dashboards, files). For each, check now that a tool for it is reachable, through a worker when the guard is on, and say plainly which are not.
 8. **Procedures.** For each check-in that runs a procedure: where the steps come from. If imported, a worker rewrites them into `procedures/<name>.md` for this environment (tool names, paths). Show the owner the list of changes, not the whole file.
 9. **Confirm.** Show the bot file as it will be written, in full. Change what the owner says. Then write.
 
@@ -77,9 +78,9 @@ On confirm:
 1. Write the bot file from the template below, but keep `Setup: pending` until step 4. Set `Thread:` to the value of `T3CODE_THREAD_ID` and `Rules seen:` to the `Rules version` of the shared rules. For a chief, add the line `Role: chief` under `Thread:`, but run the grep again right before you write it. If another bot has the line now, do not write it and say so.
 2. Create one scheduled task per check-in that is on, with `schedule_task`: bound to this thread, the prompt exactly `Check-in: <name>. Do your scheduled-run steps.` Use `interval` for the heartbeat and `fixed_time` for daily and weekly (with `weekdays`). Monthly is a daily task: write the chosen day of the month in the "Hours / days it may run" column, and the run ends at once on any other day (shared rules, "Scheduled runs"). `timeOfDay` is in the server's time zone, which may differ from the owner's: convert if needed, check the `nextRunAt` that comes back, and write both times in the table. Record each task id in the Check-ins table.
    - `freshSession` carries the context reset. Default (once a day): `true` on the daily check-in, `false` on the others. With no daily check-in, add one more task named `reset` at 04:00 local time, `freshSession: true`, prompt `Context reset. Read NOW.md and reply "reset".` Reset at every check-in: `true` on all. Never: `false` on all.
-3. Create missing folders and files (`NOW.md`, `log/`, `notes/INDEX.md`, `procedures/`).
+3. Create missing folders and files (`NOW.md`, `log/`, `notes/INDEX.md`, `procedures/`). Add the guard (section "Guard").
 4. Set "Setup: done <date>" in the bot file and commit the bots folder with git (local commit only, never push).
-5. Tell the owner in at most 6 lines: what is on, when the next run is, what could not be reached, and how to change anything ("just tell me").
+5. Tell the owner in at most 6 lines: what is on, when the next run is, what could not be reached, whether the guard is in place, and how to change anything ("just tell me").
 
 If another bot or tool still runs the same checks elsewhere, say so and leave the new heartbeat **paused** (`enabled: false`) until the owner says to switch over.
 
@@ -125,6 +126,14 @@ Reset: <the owner's choice: once a day at the daily check-in, at every check-in,
 ## Rules that are only for this bot
 - <none yet>
 ```
+
+## Guard
+
+The guard is a Claude Code hook in `<bot folder>/.claude/settings.json`. In every thread in the bot's folder that is not a worker, it blocks each MCP tool but the T3 tools in the matcher of `claude-settings.json`. A worker is not blocked: its `T3CODE_THREAD_ID` starts with `thread:delegated-task:`. The hook also acts in the running session, a few seconds after the file is written.
+
+- The agent is Claude Code and the bot folder has no `.claude/settings.json`: make the folder `.claude` and copy `${CLAUDE_SKILL_DIR}/claude-settings.json`, the file beside this SKILL.md, to that path.
+- The agent is Claude Code and the file exists: keep what is there, and make sure the list `hooks.PreToolUse` holds the entry from `claude-settings.json` once. Another entry whose only command starts with `case "$T3CODE_THREAD_ID" in thread:delegated-task:*) exit 0;;` is an older guard: delete that entry. Touch no other hook.
+- The agent is any other one: there is no guard. Write no hook.
 
 ## Change
 
@@ -198,4 +207,4 @@ Report back: when done or stuck, call `t3_thread_send` with threadId `<bot threa
 
 ## Other coding agents
 
-To move a bot to another agent, change the thread's provider in T3. Check after the move that the agent loads `AGENTS.md` from the folder and its parent, and that it has a worker tool and a scheduling tool; where it has not, say so instead of working around it.
+To move a bot to another agent, change the thread's provider in T3. Check after the move that the agent loads `AGENTS.md` from the folder and its parent, and that it has a worker tool and a scheduling tool; where it has not, say so instead of working around it. The guard works with Claude Code only: after a move to another agent, tell the owner that there is no guard. After a move to Claude Code, add it (section "Guard").
