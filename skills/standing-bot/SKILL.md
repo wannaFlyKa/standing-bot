@@ -132,7 +132,7 @@ Reset: <the owner's choice: once a day at the daily check-in, at every check-in,
 The guard is a Claude Code hook in `<bot folder>/.claude/settings.json`. In every thread in the bot's folder that is not a worker, it blocks each MCP tool but the T3 tools in the matcher of `claude-settings.json`. A worker is not blocked: its `T3CODE_THREAD_ID` starts with `thread:delegated-task:`. The hook also acts in the running session, a few seconds after the file is written.
 
 - The agent is Claude Code and the bot folder has no `.claude/settings.json`: make the folder `.claude` and copy `${CLAUDE_SKILL_DIR}/claude-settings.json`, the file beside this SKILL.md, to that path.
-- The agent is Claude Code and the file exists: keep what is there, and make sure the list `hooks.PreToolUse` holds the entry from `claude-settings.json` once. Another entry whose only command starts with `case "$T3CODE_THREAD_ID" in thread:delegated-task:*) exit 0;;` is an older guard: delete that entry. Touch no other hook.
+- The agent is Claude Code and the file exists: keep what is there, and make sure the list `hooks.PreToolUse` holds the entry from `claude-settings.json` exactly once. An older guard is an entry that differs from that entry and whose only command starts with `case "$T3CODE_THREAD_ID" in thread:delegated-task:*) exit 0;;`: delete it. Touch no other hook.
 - The agent is any other one: there is no guard. Write no hook.
 
 ## Change
