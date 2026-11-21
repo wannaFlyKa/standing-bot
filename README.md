@@ -44,28 +44,6 @@ The whole behaviour is two Markdown files. There is no code.
 - The environment variable `T3CODE_THREAD_ID`.
 - These fields on T3 messages: `createdBy`, `creationSource`, `senderThreadId`, `messageId`, `runId`, `activeRunId`.
 
-### Checked against public T3 Code
-
-The skill was written and tested on a private build of T3 Code. It was then compared with the public source at commit `22dcb0a` (2026-11-20) by reading code and docs. It was not run on a public build.
-
-Confirmed by reading:
-
-- All ten tools exist under the same names.
-- T3 Code sets `T3CODE_THREAD_ID` for the agent, in the Claude and Codex adapters among others.
-- `t3_thread_read` returns `createdBy`, `creationSource`, `senderThreadId`, `messageId` and `runId` for each item, and `activeRunId` and `itemCount` for the thread.
-- A message sent through MCP gets `createdBy: agent` and `creationSource: mcp`. It gets a `senderThreadId` only when a T3 thread sent it.
-- The message id of a scheduled run starts with `scheduled-task-message:`.
-- The thread id of a delegated worker starts with `thread:delegated-task:`.
-- `schedule_task` takes `interval` and `fixed_time` schedules, `weekdays`, `freshSession`, `enabled` and `scheduledTaskId`. `t3_thread_send` takes `mode: "queue"`, `clientRequestId` and `freshContext`.
-
-Not confirmed:
-
-- Nothing was run on a public build. The same names do not prove the same behaviour.
-- The read that finds who is speaking (`t3_thread_read` with `afterPosition: 999999`) was not run there.
-- Time of day. The private skill said `timeOfDay` is UTC. That held only because the test machine runs on UTC. Public T3 Code reads it in the server's time zone, and this copy now says so. The new sentence was not run.
-
-Nothing the rules need was found missing.
-
 ## Install
 
 Claude Code:
