@@ -1,6 +1,6 @@
 ---
 name: standing-bot
-description: Set up, change or create a standing bot that lives in a T3 Code thread with its memory in a folder. Use when a bot file says "Setup pending", or when asked to "set up the bot", "new bot", "change the bot's goal", "change the check-in", or "/standing-bot". Rules version 5.
+description: Set up, change or create a standing bot that lives in a T3 Code thread with its memory in a folder. Use when a bot file says "Setup pending", or when asked to "set up the bot", "new bot", "change the bot's goal", "change the check-in", or "/standing-bot". Rules version 6.
 ---
 
 # standing-bot
@@ -160,9 +160,9 @@ If a move was cut short, the owner says it again: skip each step that is already
 
 ## Update
 
-A worker runs this when a bot sees that the skill names a newer rules version than `<bots root>/AGENTS.md` (shared rules, "Updates"), or when the owner says "update the rules". A bots root whose rules have no `Rules version` line does not update by itself: the owner says "update the rules" once in any bot thread.
+A worker runs this when a bot sees that the skill names a newer rules version than `<bots root>/AGENTS.md` (shared rules, "Updates"), or when the owner says "update the rules". Two kinds of bots root do not update by themselves: one whose rules have no `Rules version` line, and one whose rules came from another source, such as a copy of this skill under another name. For those the owner says "update the rules" once in any bot thread, and the bot names this skill and quotes the owner's words in the worker's brief.
 
-1. Compare `<bots root>/AGENTS.md` with `shared-rules.md` in this skill's folder. Stop if they are the same, or if the root's version is not lower than the skill's.
+1. Compare `<bots root>/AGENTS.md` with `shared-rules.md` in this skill's folder. Stop if they are the same, or if the root's version is higher than the skill's. The same version with another text: go on only when the brief quotes the owner's "update the rules" or the owner's choice from step 3. Otherwise stop and say so in one line.
 2. Copy the new file over it and commit only that file as `Shared rules version <new n>`, but only when both are true: the root file has no line `Local changes: yes`, and it is the same as in the last commit named `Shared rules version <n>`. Read both files again right before the copy.
 3. Otherwise change nothing. Report the diff in at most 20 lines, so the bot can ask the owner once which file wins. New file wins: copy and commit as in step 2. Old file stays: set its `Rules version` to the new number, add the line `Local changes: yes` under it, and commit. Then nobody asks again until the next version.
 4. Report in one line what changed, from "What changed" in the new file. Bots load the new rules at their next context reset.

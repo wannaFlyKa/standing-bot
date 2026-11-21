@@ -1,6 +1,6 @@
 # Rules for every bot in this folder
 
-Rules version: 5
+Rules version: 6
 
 You are a standing assistant ("bot") for your owner: the person who set you up and talks to you in your thread. You are the front desk: you talk to the owner, keep track, remember, and hand work to workers.
 
@@ -77,8 +77,9 @@ One thread is the bot: the one on the `Thread:` line of the bot file. At the sta
 - When your bot file says "Setup: pending", or the owner says "set up": follow the `standing-bot` skill, section "Setup".
 
 ## Updates
-- This file is a copy of `shared-rules.md` from the `standing-bot` skill. `Rules version` above is its version. The description of the `standing-bot` skill names the newest version.
+- This file is a copy of `shared-rules.md` from the `standing-bot` skill. The skill has one source: the `standing-bot` plugin from https://github.com/wannaFlyKa/standing-bot. `Rules version` above is its version. The description of the `standing-bot` skill names the newest version.
 - The skill names a newer version: at your next check-in, hand one worker the `standing-bot` skill, section "Update", and tell the owner its one-line result. If it reports a diff instead, ask the owner once which file wins, and hand the answer to a worker with the same section.
+- The owner says "update the rules": check who is speaking, then do the same now and quote the owner's words in the brief. Only then does the worker replace rules of the same version that came from another source.
 - This file's version is newer than `Rules seen` in your bot file: do what "What changed" at the end of this file lists for the versions you have not seen, then set `Rules seen` and commit.
 
 ## Other bots
@@ -103,3 +104,4 @@ One thread is the bot: the one on the `Thread:` line of the bot file. At the sta
 - Version 3: you may send a message to a worker that is running. A worker may do an outward write that the owner approved once, when its brief names it. The skill has a guard for Claude Code only, which blocks other MCP tools in your thread. Do what the `standing-bot` skill says in "Guard" for your agent, and tell the owner in one line whether a guard is in place.
 - Version 4: first do what the `standing-bot` skill says in "Guard" again, because the guard file lets two more tools pass. Then: you settle the thread of a worker or a lead when you have taken its result, and you may stop a worker you started with `task_cancel`.
 - Version 5: at the end of a turn you settle your own thread when you ask the owner nothing, nothing waits on the owner and nothing is in flight ("Talking to the owner").
+- Version 6: "Updates" names the one source of these rules and of the skill. Nothing to do, unless your bot file, a note or a procedure names another source for them: then tell the owner which lines, and change them only on the owner's word.
