@@ -1,6 +1,6 @@
 ---
 name: standing-bot
-description: Set up, change or create a standing bot that lives in a T3 Code thread with its memory in a folder. Use when a bot file says "Setup pending", or when asked to "set up the bot", "new bot", "change the bot's goal", "change the check-in", or "/standing-bot". Rules version 4.
+description: Set up, change or create a standing bot that lives in a T3 Code thread with its memory in a folder. Use when a bot file says "Setup pending", or when asked to "set up the bot", "new bot", "change the bot's goal", "change the check-in", or "/standing-bot". Rules version 5.
 ---
 
 # standing-bot

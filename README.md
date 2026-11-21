@@ -109,6 +109,8 @@ After that, talk to the bot in its thread.
 
 At a check-in the bot says `quiet` when nothing needs you, and `off hours` outside its hours. It speaks up only when a worker's result asks something of you.
 
+When the bot asks you nothing, nothing waits on you, no worker runs and no project is open, the bot settles its own thread at the end of the turn. So an active bot thread means that the bot needs you or that work is open.
+
 ## The chief
 
 One bot can be the chief. Its bot file has the line `Role: chief`. Setup asks about it only while no bot is the chief.
@@ -170,7 +172,6 @@ With Claude Code as the agent, setup copies `claude-settings.json` to `<bot fold
 - The rules are text. The guard enforces part of one of them, with Claude Code only. Nothing enforces the rest.
 - The guard limits MCP tools only. It does not limit the shell or the agent's built-in tools, such as web fetch and MCP resource reads. The bot's thread can still run any command, so it can still do work itself, reach a service through a command-line tool, or edit the guard file.
 - The guard allows a tool, not one use of it. `t3_thread_organize` is there for settling, but it can also archive, snooze or pin a thread.
-- The bot settles work threads, not its own thread. A message typed by a person into a settled thread was not tried.
 - There is no guard for other agents. Codex CLI 0.171.0 has a hook that can block a tool call by name. In T3 Code 0.1.9 the hook does not get `T3CODE_THREAD_ID`, so it could not tell the bot from a worker. Both were read in the code, not run. Kiro CLI documents such a hook too. Kiro CLI was not installed, and nothing was run.
 - A worker with a shell can send a message that looks like the owner's outside session.
 - A worker with a shell can edit a bot file or the guard file.
@@ -204,11 +205,13 @@ The guard was tested on 2026-11-21, as a live hook, with Claude Code 2.1.327 on 
 - The two tools that were added later, `task_cancel` and `t3_thread_organize`, ran in such a thread. It stopped a worker that was running, and it settled a finished worker thread and a finished thread in another project. Two other MCP tools were still refused, and a worker was still not blocked.
 - A settled thread still got a scheduled task, a worker result, a `WORKER RESULT:` message from another thread and a queued bot message. Each one started a turn and made the thread active again. A thread that settled itself was settled when its turn ended.
 - A test bot under rules version 4 ran one scheduled check-in. When it had taken the worker's result, it settled the worker's thread. No tool call was refused in its thread.
+- A test bot under rules version 5 ran two scheduled check-ins. In the first, it left its own thread active while its worker ran. When it had taken the result and nothing waited on the owner, it settled the worker's thread and then its own. The second check-in woke the settled thread. Its result held a question for the owner, and the bot left its thread active.
+- A typed message reached a bot thread that had settled itself at the end of the turn before.
 - An agent that followed the section "Guard" wrote the guard file: once into a folder with no settings file, and once into a settings file that held the older guard and other entries. In the first case the hook started to block in the same session.
 
 ## What was not tested
 
-- A message typed by a person, which is the `createdBy: user` case.
+- A message typed by a person as the owner's word for a setup change or an approval, which is the `createdBy: user` case.
 - A bot that runs on Codex, or on any agent other than Claude Code.
 - Any T3 Code version other than 0.1.9.
 - The skill after the changes above, apart from the guard tests.
@@ -219,7 +222,7 @@ The guard was tested on 2026-11-21, as a live hook, with Claude Code 2.1.327 on 
 
 ## Rules version
 
-The rules carry a version in two places that must match: the line `Rules version: 4` in `shared-rules.md`, and the words "Rules version 4." at the end of the skill description in `SKILL.md`. Bots compare the two to find updates. The description is YAML, so it must not hold a colon followed by a space.
+The rules carry a version in two places that must match: the line `Rules version: 5` in `shared-rules.md`, and the words "Rules version 5." at the end of the skill description in `SKILL.md`. Bots compare the two to find updates. The description is YAML, so it must not hold a colon followed by a space.
 
 ## License
 
