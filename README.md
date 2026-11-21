@@ -104,7 +104,7 @@ After that, talk to the bot in its thread.
 | "remember ...", "forget ...", "that is wrong" | Changes its notes in the same turn. |
 | "fix it", "build this" | Starts a project: a new T3 Code project with one lead thread. It never starts one on its own. |
 | "move the bot here", in another thread in the bot's folder | Makes that thread the bot. |
-| "update the rules" | Takes newer shared rules from the skill. |
+| "update the rules" | Takes newer shared rules from the skill. It also replaces rules of the same version that came from another source, such as a copy of the skill under another name. If those rules name another skill, name this one when you say it. |
 | `new bot`, in any thread with full access | Makes another bot. |
 
 At a check-in the bot says `quiet` when nothing needs you, and `off hours` outside its hours. It speaks up only when a worker's result asks something of you.
@@ -209,20 +209,30 @@ The guard was tested on 2026-11-21, as a live hook, with Claude Code 2.1.327 on 
 - A typed message reached a bot thread that had settled itself at the end of the turn before.
 - An agent that followed the section "Guard" wrote the guard file: once into a folder with no settings file, and once into a settings file that held the older guard and other entries. In the first case the hook started to block in the same session.
 
+The rules update at version 6 was tested on 2026-11-21, with Claude Code 2.1.327 on T3 Code 0.1.9, in throwaway bots roots. A test thread gave each worker its brief:
+
+- A root at version 5, whose rules came from a copy of the skill under another name. The worker followed the section "Update", copied the new file and committed only `AGENTS.md` as `Shared rules version 6`.
+- A root at version 6 with another text. With no owner's words in the brief, the worker changed nothing. With "update the rules" quoted in the brief, it copied the new file and committed it. With the line `Local changes: yes` in the root file, it changed nothing and reported the diff. With the owner's choice "the new file wins" quoted in the next brief, a worker copied the new file and committed it.
+- A test bot whose bot file said `Rules seen: 5` ran one scheduled check-in in a fresh session under the version 6 rules. It told the owner which line of a note named another source, changed nothing there, set `Rules seen: 6` and committed. In the same check-in it handed the check to a worker, took the result and said `quiet`.
+- A worker that followed the section "Guard" left a guard file alone that held the same entry with its keys in another order.
+- The plugin, installed from GitHub at version 5, loaded in a new thread beside a copy of the skill under another name.
+
 ## What was not tested
 
 - A message typed by a person as the owner's word for a setup change or an approval, which is the `createdBy: user` case.
 - A bot that runs on Codex, or on any agent other than Claude Code.
 - Any T3 Code version other than 0.1.9.
-- The skill after the changes above, apart from the guard tests.
+- The skill after the changes above, apart from the guard tests and the version 6 update tests.
 - The setup interview with the guard step, and a bot with older rules that adds or renews the guard.
 - The guard in a thread that a person made in the app. Every test thread was made through a T3 Code tool.
 - The guard in a Claude Code session outside T3 Code. Its command was run in a shell only.
 - The guard against a tool of an MCP server that a plugin brings.
+- "update the rules" typed by a person in a bot thread. The update tests gave the worker its brief from a test thread.
+- An update of the installed plugin to a newer version.
 
 ## Rules version
 
-The rules carry a version in two places that must match: the line `Rules version: 5` in `shared-rules.md`, and the words "Rules version 5." at the end of the skill description in `SKILL.md`. Bots compare the two to find updates. The description is YAML, so it must not hold a colon followed by a space.
+The rules carry a version in two places that must match: the line `Rules version: 6` in `shared-rules.md`, and the words "Rules version 6." at the end of the skill description in `SKILL.md`. Bots compare the two to find updates. The description is YAML, so it must not hold a colon followed by a space.
 
 ## License
 
