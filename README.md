@@ -4,7 +4,7 @@ A skill that turns a T3 Code thread into a standing bot. The bot stays, keeps it
 
 Site: https://wannaflyka.github.io/standing-bot/
 
-Status: early. It was tested with Claude Code as the agent, inside T3 Code. Other agents are not tested yet. T3 Code is the only host for now. Other hosts may come later, for example the Claude Code desktop app on its own.
+Status: early. It was tested with Claude Code as the agent, inside T3 Code 0.1.9. Other agents are not tested yet. T3 Code is the only host for now. Other hosts may come later, for example the Claude Code desktop app on its own.
 
 ## What it is
 
@@ -169,7 +169,7 @@ With Claude Code as the agent, setup copies `claude-settings.json` to `<bot fold
 
 - The rules are text. The guard enforces part of one of them, with Claude Code only. Nothing enforces the rest.
 - The guard limits MCP tools only. It does not limit the shell or the agent's built-in tools, such as web fetch and MCP resource reads. The bot's thread can still run any command, so it can still do work itself, reach a service through a command-line tool, or edit the guard file.
-- There is no guard for other agents. Codex CLI 0.171.0 has a hook that can block a tool call by name. In the T3 Code build used here the hook does not get `T3CODE_THREAD_ID`, so it could not tell the bot from a worker. Both were read in the code, not run. Kiro CLI documents such a hook too. Kiro CLI was not installed, and nothing was run.
+- There is no guard for other agents. Codex CLI 0.171.0 has a hook that can block a tool call by name. In T3 Code 0.1.9 the hook does not get `T3CODE_THREAD_ID`, so it could not tell the bot from a worker. Both were read in the code, not run. Kiro CLI documents such a hook too. Kiro CLI was not installed, and nothing was run.
 - A worker with a shell can send a message that looks like the owner's outside session.
 - A worker with a shell can edit a bot file or the guard file.
 
@@ -187,13 +187,13 @@ To spend less, use a longer heartbeat or fewer check-ins.
 
 ## What was tested
 
-Tested on 2026-11-20 with throwaway bots, on a private build of T3 Code, with Claude Code as the agent:
+Tested on 2026-11-20 with throwaway bots, on T3 Code 0.1.9, with Claude Code as the agent:
 
 setup interview, check-ins, hand-off to a worker, chief brief, forged bot messages, a setup change from another thread, an approval from an outside session, escalation, pause and resume, two chiefs, bot creation, first-use checks, the rules update flow, two threads in one bot folder.
 
-Those tests ran on the private version of the skill. This copy differs from it by the new name, a few wording changes and the time zone sentence. It was not run again.
+Those tests ran on an earlier draft of the skill. The name, a few wording changes and the time zone sentence came after. The tests were not run again.
 
-The guard was tested on 2026-11-21 on this copy, as a live hook, with Claude Code 2.1.327 on the same private build of T3 Code, in throwaway folders:
+The guard was tested on 2026-11-21, as a live hook, with Claude Code 2.1.327 on T3 Code 0.1.9, in throwaway folders:
 
 - In a thread that the hook takes for the bot, each of the eleven allowed tools ran. Six other MCP tools were refused: four more T3 Code tools, and one tool each of two other MCP servers. The shell, file reads and tool search still worked.
 - A worker that this thread started was not blocked. It got a message from the thread while it ran, and its result woke the thread. A scheduled task also started a turn in the thread.
@@ -205,8 +205,8 @@ The guard was tested on 2026-11-21 on this copy, as a live hook, with Claude Cod
 
 - A message typed by a person, which is the `createdBy: user` case.
 - A bot that runs on Codex, or on any agent other than Claude Code.
-- A public build of T3 Code.
-- This copy after the changes above, apart from the guard tests.
+- Any T3 Code version other than 0.1.9.
+- The skill after the changes above, apart from the guard tests.
 - The setup interview with the guard step, and a bot from before rules version 3 that adds the guard.
 - The guard in a thread that a person made in the app. Every test thread was made through a T3 Code tool.
 - The guard in a Claude Code session outside T3 Code. Its command was run in a shell only.
