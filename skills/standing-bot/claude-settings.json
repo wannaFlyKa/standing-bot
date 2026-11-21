@@ -2,7 +2,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "^mcp__(?!t3-code__(orchestrator_capabilities|delegate_task|t3_thread_send|t3_thread_read|t3_thread_launch|t3_project_create|t3_project_list|schedule_task|list_scheduled_tasks|run_scheduled_task_now|delete_scheduled_task)$).*",
+        "matcher": "^mcp__(?!t3-code__(orchestrator_capabilities|delegate_task|task_cancel|t3_thread_send|t3_thread_read|t3_thread_launch|t3_thread_organize|t3_project_create|t3_project_list|schedule_task|list_scheduled_tasks|run_scheduled_task_now|delete_scheduled_task)$).*",
         "hooks": [
           {
             "type": "command",
