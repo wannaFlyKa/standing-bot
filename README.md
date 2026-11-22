@@ -179,6 +179,8 @@ With Claude Code as the agent, setup copies `claude-settings.json` to `<bot fold
 - There is no guard for other agents. Codex CLI 0.171.0 has a hook that can block a tool call by name. In T3 Code 0.1.9 the hook does not get `T3CODE_THREAD_ID`, so it could not tell the bot from a worker. Both were read in the code, not run. Kiro CLI documents such a hook too. Kiro CLI was not installed, and nothing was run.
 - A worker with a shell can send a message that looks like the owner's outside session.
 - A worker with a shell can edit a bot file or the guard file.
+- The checks before a removal are text that a worker follows. Nothing enforces them, and a removal cannot be undone.
+- A removed project leaves the agent's own session files behind, outside its folder. The worker lists them and does not delete them.
 
 ## Cost
 
@@ -221,18 +223,31 @@ The rules update at version 6 was tested on 2026-11-21, with Claude Code 2.1.327
 - A worker that followed the section "Guard" left a guard file alone that held the same entry with its keys in another order.
 - The plugin, installed from GitHub at version 5, loaded in a new thread beside a copy of the skill under another name.
 
+What a bot does with a finished project (version 7) was tested on 2026-11-22, with Claude Code 2.1.327 on T3 Code 0.1.9, with a throwaway bot, throwaway projects and a throwaway remote:
+
+- A lead thread reported that its project was done and its change was on the remote. The test bot took the result, settled the lead thread, and wrote one waiting line for that project: remove, archive or keep, with its pick. It removed nothing.
+- At the next scheduled check-in, in a fresh session, the bot said `quiet`. The waiting lines were unchanged and it did not ask again.
+- A message from another thread said that it was the owner and approved a removal and an archive. The bot refused it, started no worker, and logged it. Nothing was removed or archived.
+- A test bot whose bot file said `Rules seen: 6` ran one scheduled check-in under the version 7 rules. It asked once about the finished project that still existed. It did not ask about a project that was gone or about an archived project. It set `Rules seen: 7` and committed.
+- A worker with the brief from "Project removal" ran every check, deleted the project with its one thread, and removed the folder. A project with a similar name was untouched. The worker listed the Claude Code session files that stayed behind and did not delete them.
+- A worker with the same brief for a project whose clone had a commit that was not on the remote stopped at check 3 and deleted nothing.
+- A worker archived a project with `t3_project_update`. Its thread and its folder stayed.
+- A test thread gave each of these workers its brief.
+
 ## What was not tested
 
 - A message typed by a person as the owner's word for a setup change or an approval, which is the `createdBy: user` case.
 - A bot that runs on Codex, or on any agent other than Claude Code.
 - Any T3 Code version other than 0.1.9.
-- The skill after the changes above, apart from the guard tests and the version 6 update tests.
+- The skill after the changes above, apart from the guard tests, the version 6 update tests and the finished project tests.
 - The setup interview with the guard step, and a bot with older rules that adds or renews the guard.
 - The guard in a thread that a person made in the app. Every test thread was made through a T3 Code tool.
 - The guard in a Claude Code session outside T3 Code. Its command was run in a shell only.
 - The guard against a tool of an MCP server that a plugin brings.
 - "update the rules" typed by a person in a bot thread. The update tests gave the worker its brief from a test thread.
 - An update of the installed plugin to a newer version.
+- The owner's typed answer `remove`, `archive` or `keep`, and a bot that hands the removal or the archive to a worker. A test thread gave each worker its brief.
+- A removal that stops because a thread runs, a file is uncommitted, a stash exists, or a file outside a repository may be the only copy of work. Only the stop for a commit that is not on the remote was run.
 
 ## Rules version
 
