@@ -1,3 +1,5 @@
+<img src="assets/icon.svg" width="48" height="48" alt="">
+
 # standing-bot
 
 A skill that turns a T3 Code thread into a standing bot. The bot stays, keeps its memory in a folder, checks in on a schedule, and hands the work to workers.
