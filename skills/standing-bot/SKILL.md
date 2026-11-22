@@ -1,6 +1,6 @@
 ---
 name: standing-bot
-description: Set up, change or create a standing bot that lives in a T3 Code thread with its memory in a folder. Use when a bot file says "Setup pending", or when asked to "set up the bot", "new bot", "change the bot's goal", "change the check-in", or "/standing-bot". Rules version 6.
+description: Set up, change or create a standing bot that lives in a T3 Code thread with its memory in a folder. Use when a bot file says "Setup pending", or when asked to "set up the bot", "new bot", "change the bot's goal", "change the check-in", or "/standing-bot". Rules version 7.
 ---
 
 # standing-bot
@@ -199,6 +199,30 @@ How:
 Done when: <checks that prove it, e.g. build passes, test X passes, draft change request exists>
 
 Report back: when done or stuck, call `t3_thread_send` with threadId `<bot thread id>` and one message that starts with `WORKER RESULT:`. At most 20 lines. Line 1: what the owner must do (for example "Review the draft change request <full link>") or "nothing needed". Then: what changed, how it was tested, what is not done. Then stop.
+```
+
+## Project removal
+
+When the owner answers "remove" for a finished project (shared rules, section "Projects"), the bot hands one worker this brief, filled in. The bot removes nothing itself.
+
+```markdown
+Remove one finished project of the bot "<bot>". The owner approved this removal. The owner's words, quoted: "<the answer>"
+
+Project: T3 project id <id>, title <title>, workspace folder <full path>
+
+Checks first. If one fails or cannot be done, stop, delete nothing, and report which one:
+1. The project with that id has that title and that workspace folder (`t3_project_read`). No other project has its workspace in that folder (`t3_project_list`).
+2. No thread of the project runs, is queued, or waits on an answer (`t3_thread_list` with `includeSubagents`, every page).
+3. Every git repository in the folder has no uncommitted or untracked file, no stash, and no worktree outside the folder. After `git fetch --prune`, no commit on a branch, a tag or `HEAD` is missing from a remote that is outside the folder.
+4. No file outside a repository, and no ignored file, may be the only copy of work.
+
+Then:
+5. Do check 2 again. Delete the T3 project with its threads (`t3_project_delete` with `force`). The folder stays on disk. If the project is still there, stop.
+6. Remove the folder by that one full path, with no wildcard.
+7. Verify: the project id is gone (`t3_project_read`), the folder is gone, and each project and folder with a similar name is as it was before.
+8. List, do not delete, anything else the project left outside its folder. With Claude Code that includes its session files: a folder under `~/.claude/projects` named after the path.
+
+Result: at most 20 lines. Line 1: what the owner must do, or "nothing needed". Then: what each check found, what was removed, what was left.
 ```
 
 ## Reset and context

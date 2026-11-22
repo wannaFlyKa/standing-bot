@@ -34,7 +34,7 @@ One optional chief bot sees the other bots and tells you what waits on you.
 
 The whole behaviour is two Markdown files and one settings file. There is no other code.
 
-- `skills/standing-bot/SKILL.md`: setup, change, move, update, new bot, project brief
+- `skills/standing-bot/SKILL.md`: setup, change, move, update, new bot, project brief, project removal
 - `skills/standing-bot/shared-rules.md`: how every bot behaves
 - `skills/standing-bot/claude-settings.json`: the guard for Claude Code
 
@@ -43,6 +43,7 @@ The whole behaviour is two Markdown files and one settings file. There is no oth
 - [T3 Code](https://github.com/pingdotgg/t3code) with a coding agent set up in it. Claude Code is the one that was tested.
 - git. The bots root is a local git repository.
 - These T3 Code tools, which an agent has inside a T3 thread: `schedule_task`, `list_scheduled_tasks`, `run_scheduled_task_now`, `delete_scheduled_task`, `delegate_task`, `task_cancel`, `t3_thread_launch`, `t3_thread_send`, `t3_thread_read`, `t3_thread_organize`, `t3_project_create`, `t3_project_list`.
+- For the worker that removes or archives a finished project: `t3_project_read`, `t3_thread_list`, `t3_project_delete`, `t3_project_update`.
 - The environment variable `T3CODE_THREAD_ID`.
 - For the guard: the T3 Code MCP server is named `t3-code`, and the thread id of a worker starts with `thread:delegated-task:`.
 - These fields on T3 messages: `createdBy`, `creationSource`, `senderThreadId`, `messageId`, `runId`, `activeRunId`.
@@ -103,6 +104,7 @@ After that, talk to the bot in its thread.
 | `pause`, `resume` | Switches its check-ins off, and on again. |
 | "remember ...", "forget ...", "that is wrong" | Changes its notes in the same turn. |
 | "fix it", "build this" | Starts a project: a new T3 Code project with one lead thread. It never starts one on its own. |
+| `remove`, `archive` or `keep`, with the project name, when the bot asks about a finished project | Remove: a worker checks that no thread runs, that no file is uncommitted and that every commit is on its remote. Then it deletes the T3 Code project with its threads and removes its folder. Archive: a worker archives the project, and its threads and its folder stay. Keep: nothing. |
 | "move the bot here", in another thread in the bot's folder | Makes that thread the bot. |
 | "update the rules" | Takes newer shared rules from the skill. It also replaces rules of the same version that came from another source, such as a copy of the skill under another name. If those rules name another skill, name this one when you say it. |
 | `new bot`, in any thread with full access | Makes another bot. |
@@ -110,6 +112,8 @@ After that, talk to the bot in its thread.
 At a check-in the bot says `quiet` when nothing needs you, and `off hours` outside its hours. It speaks up only when a worker's result asks something of you.
 
 When the bot asks you nothing, nothing waits on you, no worker runs and no project is open, the bot settles its own thread at the end of the turn. So an active bot thread means that the bot needs you or that work is open.
+
+When a project is done and its change is merged or pushed, or you said that the project is over, the bot asks you once what to do with it: remove, archive or keep. It does not ask again by itself. It never removes or archives a project without your answer for that project, and for a removal you must type the answer in the bot's thread.
 
 ## The chief
 
@@ -160,7 +164,7 @@ An approval counts once, for the act named in the same message.
 
 With Claude Code as the agent, setup copies `claude-settings.json` to `<bot folder>/.claude/settings.json`. It is a `PreToolUse` hook, and it holds an allow list.
 
-- In the bot's thread it blocks every MCP tool except the twelve T3 Code tools under "What you need" and `orchestrator_capabilities`, which T3 Code asks a thread to call before it starts a worker. The bot can start a worker, stop it, send a message to a worker that is running, send a bot message, read a thread, settle a thread, schedule tasks, and start a project. Any other MCP tool call must go to a worker.
+- In the bot's thread it blocks every MCP tool except the twelve T3 Code tools in the first tool list under "What you need" and `orchestrator_capabilities`, which T3 Code asks a thread to call before it starts a worker. The bot can start a worker, stop it, send a message to a worker that is running, send a bot message, read a thread, settle a thread, schedule tasks, and start a project. Any other MCP tool call must go to a worker.
 - A worker is not blocked. The hook lets a call pass when `T3CODE_THREAD_ID` starts with `thread:delegated-task:`.
 - A visitor thread in the bot's folder gets the same block as the bot. The hook lets only a worker pass, so a Claude Code session outside T3 Code should get the block in that folder too. That case was not run.
 - The lead thread of a project is not blocked. It runs in the project's own folder, where the bot folder's settings are not loaded.
@@ -232,7 +236,7 @@ The rules update at version 6 was tested on 2026-11-21, with Claude Code 2.1.327
 
 ## Rules version
 
-The rules carry a version in two places that must match: the line `Rules version: 6` in `shared-rules.md`, and the words "Rules version 6." at the end of the skill description in `SKILL.md`. Bots compare the two to find updates. The description is YAML, so it must not hold a colon followed by a space.
+The rules carry a version in two places that must match: the line `Rules version: 7` in `shared-rules.md`, and the words "Rules version 7." at the end of the skill description in `SKILL.md`. Bots compare the two to find updates. The description is YAML, so it must not hold a colon followed by a space.
 
 ## License
 
