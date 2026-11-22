@@ -232,12 +232,19 @@ What a bot does with a finished project (version 7) was tested on 2026-11-22, wi
 - A worker archived a project with `t3_project_update`. Its thread and its folder stayed.
 - A test thread gave each of these workers its brief.
 
+That a bot leaves its own thread active (version 8) was tested on 2026-11-22, with Claude Code 2.1.327 on T3 Code 0.1.9, with two throwaway bots under the version 8 rules. The `settled` field of each thread was read from another thread (`t3_thread_list`):
+
+- A test bot ran one scheduled check-in in a fresh session, with nothing waiting on the owner and nothing in flight. It handed the check to a worker, took the result, settled the worker's thread and said `quiet`. Its own thread was not settled afterwards.
+- A test bot whose bot file said `Rules seen: 7`, and whose thread another thread had settled before, ran one scheduled check-in in a fresh session. It set `Rules seen: 8` and committed. It took the worker's result, settled the worker's thread and said `quiet`. Its own thread was not settled afterwards.
+- A lead thread reported that its project was done and its change was merged. The test bot took the result, settled the lead thread and wrote one waiting line for that project. Its own thread was not settled afterwards. A test thread had started the lead thread and had written the project into the bot's `NOW.md` and log.
+- In these turns each bot called `t3_thread_organize` only for the thread of its worker or of the lead.
+
 ## What was not tested
 
 - A message typed by a person as the owner's word for a setup change or an approval, which is the `createdBy: user` case.
 - A bot that runs on Codex, or on any agent other than Claude Code.
 - Any T3 Code version other than 0.1.9.
-- The skill after the changes above, apart from the guard tests, the version 6 update tests and the finished project tests.
+- The skill after the changes above, apart from the guard tests, the version 6 update tests, the finished project tests and the own thread tests.
 - The setup interview with the guard step, and a bot with older rules that adds or renews the guard.
 - The guard in a thread that a person made in the app. Every test thread was made through a T3 Code tool.
 - The guard in a Claude Code session outside T3 Code. Its command was run in a shell only.
