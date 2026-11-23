@@ -72,6 +72,14 @@ codex plugin marketplace add wannaFlyKa/standing-bot
 codex plugin add standing-bot@standing-bot
 ```
 
+To update the plugin later, so that the bots see a newer rules version:
+
+```sh
+claude plugin marketplace update standing-bot    # Claude Code, both lines
+claude plugin update standing-bot@standing-bot
+codex plugin marketplace upgrade standing-bot    # Codex
+```
+
 Without a plugin, copy the skill folder:
 
 ```sh
@@ -108,7 +116,7 @@ After that, talk to the bot in its thread.
 | "fix it", "build this" | Starts a project: a new T3 Code project with one lead thread. It never starts one on its own. |
 | `remove`, `archive` or `keep`, with the project name, when the bot asks about a finished project | Remove: a worker checks that no thread runs, that no file is uncommitted and that every commit is on its remote. Then it deletes the T3 Code project with its threads and removes its folder. Archive: a worker archives the project, and its threads and its folder stay. Keep: nothing. |
 | "move the bot here", in another thread in the bot's folder | Makes that thread the bot. |
-| "update the rules" | Takes newer shared rules from the skill. It also replaces rules of the same version that came from another source, such as a copy of the skill under another name. If those rules name another skill, name this one when you say it. |
+| "update the rules" | Takes newer shared rules from the skill. It also replaces rules of the same version that came from another source, such as a copy of the skill under another name. If those rules name another skill, name this one when you say it. Each bot takes the new rules at its next context reset. By default that is its daily check-in, or 04:00 local time when it has no daily check-in. |
 | `new bot`, in any thread with full access | Makes another bot. |
 
 At a check-in the bot says `quiet` when nothing needs you, and `off hours` outside its hours. It speaks up only when a worker's result asks something of you.
@@ -179,8 +187,8 @@ With Claude Code as the agent, setup copies `claude-settings.json` to `<bot fold
 - The guard limits MCP tools only. It does not limit the shell or the agent's built-in tools, such as web fetch and MCP resource reads. The bot's thread can still run any command, so it can still do work itself, reach a service through a command-line tool, or edit the guard file.
 - The guard allows a tool, not one use of it. `t3_thread_organize` is there to settle the thread of a worker or a lead, but it can also settle the bot's own thread, and archive, snooze or pin a thread. Only the rules keep the bot's own thread active.
 - There is no guard for other agents. Codex CLI 0.171.0 has a hook that can block a tool call by name. In T3 Code 0.1.9 the hook does not get `T3CODE_THREAD_ID`, so it could not tell the bot from a worker. Both were read in the code, not run. Kiro CLI documents such a hook too. Kiro CLI was not installed, and nothing was run.
-- A worker with a shell can send a message that looks like the owner's outside session.
-- A worker with a shell can edit a bot file or the guard file.
+- The guard does not limit a worker. A worker reads outside text, such as tickets, mail and web pages, and it can use every tool of the agent, including one that sends a message.
+- A worker with a shell can send a message that looks like the owner's outside session, and it can edit a bot file or the guard file.
 - The checks before a removal are text that a worker follows. Nothing enforces them, and a removal cannot be undone.
 - A removed project leaves the agent's own session files behind, outside its folder. The worker lists them and does not delete them.
 
