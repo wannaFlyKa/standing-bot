@@ -249,20 +249,31 @@ That a bot leaves its own thread active (version 8) was tested on 2026-11-22, wi
 - A lead thread reported that its project was done and its change was merged. The test bot took the result, settled the lead thread and wrote one waiting line for that project. Its own thread was not settled afterwards. A test thread had started the lead thread and had written the project into the bot's `NOW.md` and log.
 - In these turns each bot called `t3_thread_organize` only for the thread of its worker or of the lead.
 
+The log time and the commit of a bot's own folder (version 9) were tested on 2026-11-23, with Claude Code 2.1.330 on T3 Code 0.1.9, with two throwaway bots in one throwaway bots root. A third bot folder in that root held files that were not committed: three new files and a change to a tracked file.
+
+- An agent followed steps 1, 3 and 4 under "On confirm" in the section "Setup" for a new bot folder in that root. Its commit held eight files, all in that folder. A test thread gave it the confirmed answers, and the interview was not run.
+- One test bot ran one scheduled check-in in a fresh session. It read the clock with `date` before each of its two log entries, and each entry had that time. Its commit `<bot>: daily <date>` held two files, both in its own folder.
+- The other test bot, whose bot file said `Rules seen: 8`, ran one scheduled check-in in a fresh session under the version 9 rules. It set `Rules seen: 9` and committed. It read the clock once for its first two log entries and once for the next three. Its two commits held its own folder only.
+- After each of these commits, the files of the third folder were still not committed. The first of the two bots ran one more check-in while one of those files was staged in git, and its commit did not take that file.
+- In each check-in commit the bot named its own folder in both `git add` and `git commit`.
+
+The commands that update the plugin were run on 2026-11-23 in scratch config folders, with Claude Code 2.1.327 and Codex CLI 0.171.0. Each folder had the marketplace from GitHub. Its copy was set back to version 7, and the plugin was installed from that copy. With Claude Code, the installed plugin went to version 8 only after both commands, in that order. With Codex, the one command did it.
+
 ## What was not tested
 
 - A message typed by a person as the owner's word for a setup change or an approval, which is the `createdBy: user` case.
 - A bot that runs on Codex, or on any agent other than Claude Code.
 - Any T3 Code version other than 0.1.9.
-- The skill after the changes above, apart from the guard tests, the version 6 update tests, the finished project tests and the own thread tests.
+- The skill after the changes above, apart from the guard tests, the version 6 update tests, the finished project tests, the own thread tests and the version 9 tests.
 - The setup interview with the guard step, and a bot with older rules that adds or renews the guard.
 - The guard in a thread that a person made in the app. Every test thread was made through a T3 Code tool.
 - The guard in a Claude Code session outside T3 Code. Its command was run in a shell only.
 - The guard against a tool of an MCP server that a plugin brings.
 - "update the rules" typed by a person in a bot thread. The update tests gave the worker its brief from a test thread.
-- An update of the installed plugin to a newer version.
+- A bot that sees a newer rules version after an update of the plugin. The update commands were run with no bot, from version 7 to version 8.
 - The owner's typed answer `remove`, `archive` or `keep`, and a bot that hands the removal or the archive to a worker. A test thread gave each worker its brief.
 - A removal that stops because a thread runs, a file is uncommitted, a stash exists, or a file outside a repository may be the only copy of work. Only the stop for a commit that is not on the remote was run.
+- Under version 9: a commit after a setup change or a move, a commit on the owner's word, a commit by a bot with no daily check-in, two bots that commit at the same moment, a rules update by a worker, and a reset at 04:00 for a bot with no daily check-in.
 
 ## Rules version
 
