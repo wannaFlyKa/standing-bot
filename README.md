@@ -21,7 +21,7 @@ All bots sit under one bots root. The file `AGENTS.md` in the root is a copy of 
 
 ```
 <bots root>/                 shared rules: AGENTS.md (CLAUDE.md is a symlink to it)
-  <bot>/
+  <bot>/                     its own git repository
     AGENTS.md                the bot file: purpose, goal, key results, check-ins, rules
     NOW.md                   current view, at most 4,000 characters
     log/YYYY-MM-DD.md        append only
@@ -43,7 +43,7 @@ The whole behaviour is two Markdown files and one settings file. There is no oth
 ## What you need
 
 - [T3 Code](https://github.com/pingdotgg/t3code) with a coding agent set up in it. Claude Code is the one that was tested.
-- git. The bots root is a local git repository.
+- git. The bots root and each bot folder are local git repositories.
 - These T3 Code tools, which an agent has inside a T3 thread: `schedule_task`, `list_scheduled_tasks`, `run_scheduled_task_now`, `delete_scheduled_task`, `delegate_task`, `task_cancel`, `t3_thread_launch`, `t3_thread_send`, `t3_thread_read`, `t3_thread_organize`, `t3_project_create`, `t3_project_list`.
 - For the worker that removes or archives a finished project: `t3_project_read`, `t3_thread_list`, `t3_project_delete`, `t3_project_update`.
 - The environment variable `T3CODE_THREAD_ID`.
@@ -167,7 +167,7 @@ An approval counts once, for the act named in the same message.
 - The bot asks you before it starts a third project while two are in flight.
 - Bots send each other two kinds of message only: HANDOVER from the chief to a bot, and ESCALATE from a bot to the chief. Neither is answered by message.
 - A bot cannot message a bot that runs with a broader runtime mode.
-- The bots root is a local git repository. The rules say never push it and never add a remote.
+- Each bot folder is a local git repository, and so is the bots root. The rules say never push them and never add a remote.
 - A monthly check-in is a daily task that ends at once on every other day.
 
 ## The guard
@@ -186,6 +186,7 @@ With Claude Code as the agent, setup copies `claude-settings.json` to `<bot fold
 - The rules are text. The guard enforces part of one of them, with Claude Code only. Nothing enforces the rest.
 - The guard limits MCP tools only. It does not limit the shell or the agent's built-in tools, such as web fetch and MCP resource reads. The bot's thread can still run any command, so it can still do work itself, reach a service through a command-line tool, or edit the guard file.
 - The guard allows a tool, not one use of it. `t3_thread_organize` is there to settle the thread of a worker or a lead, but it can also settle the bot's own thread, and archive, snooze or pin a thread. Only the rules keep the bot's own thread active.
+- Codex loads `AGENTS.md` only inside the bot folder's repository. A bot on Codex needs the line from "Other coding agents" in its bot file, to read the shared rules.
 - There is no guard for other agents. Codex CLI 0.171.0 has a hook that can block a tool call by name. In T3 Code 0.1.9 the hook does not get `T3CODE_THREAD_ID`, so it could not tell the bot from a worker. Both were read in the code, not run. Kiro CLI documents such a hook too. Kiro CLI was not installed, and nothing was run.
 - The guard does not limit a worker. A worker reads outside text, such as tickets, mail and web pages, and it can use every tool of the agent, including one that sends a message.
 - A worker with a shell can send a message that looks like the owner's outside session, and it can edit a bot file or the guard file.
@@ -277,7 +278,7 @@ The commands that update the plugin were run on 2026-11-23 in scratch config fol
 
 ## Rules version
 
-The rules carry a version in two places that must match: the line `Rules version: 9` in `shared-rules.md`, and the words "Rules version 9." at the end of the skill description in `SKILL.md`. Bots compare the two to find updates. The description is YAML, so it must not hold a colon followed by a space.
+The rules carry a version in two places that must match: the line `Rules version: 10` in `shared-rules.md`, and the words "Rules version 10." at the end of the skill description in `SKILL.md`. Bots compare the two to find updates. The description is YAML, so it must not hold a colon followed by a space.
 
 ## License
 

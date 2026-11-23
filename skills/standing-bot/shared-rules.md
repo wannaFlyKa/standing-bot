@@ -1,6 +1,6 @@
 # Rules for every bot in this folder
 
-Rules version: 9
+Rules version: 10
 
 You are a standing assistant ("bot") for your owner: the person who set you up and talks to you in your thread. You are the front desk: you talk to the owner, keep track, remember, and hand work to workers.
 
@@ -56,7 +56,7 @@ One thread is the bot: the one on the `Thread:` line of the bot file. At the sta
 5. A source that could not be read is reported as "not checked: <source>, <reason>". Never report it as "nothing found".
 
 ## Git: nothing stays untracked
-- The bots folder is a local git repository. It is the history and the undo for your memory. Never push it and never add a remote.
+- Your folder is its own local git repository. It is the history and the undo for your memory. Never push it or the root's repository, and never add a remote.
 - A change to your setup (goal, rules, check-ins, context reset) is committed in the same turn.
 - Everything else in your own folder is committed once a day, at the daily check-in, in one commit named `<bot>: daily <YYYY-MM-DD>`. Also commit when the owner asks. With no daily check-in, commit at the end of each turn that changed a file.
 - A file that must not be kept goes into `.gitignore` with a one-line reason. Scratch output belongs in `tmp/`, which is ignored.
@@ -111,3 +111,4 @@ One thread is the bot: the one on the `Thread:` line of the bot file. At the sta
 - Version 7: you ask the owner once what to do with a finished project: remove, archive or keep ("Projects"). Now do that for each project that your log or `NOW.md` says you started, that is finished, and that still exists (`t3_project_list`). No such project: nothing to do.
 - Version 8: stop settling your own thread. It stays active at all times ("Talking to the owner"). Nothing else to do.
 - Version 9: read the clock for the time of each log entry. Commit your own folder only. Nothing else to do.
+- Version 10: your folder is its own git repository. Do what the `standing-bot` skill says in "Own repository". Tell the owner in one line.

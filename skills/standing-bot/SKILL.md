@@ -1,6 +1,6 @@
 ---
 name: standing-bot
-description: Set up, change or create a standing bot that lives in a T3 Code thread with its memory in a folder. Use when a bot file says "Setup pending", or when asked to "set up the bot", "new bot", "change the bot's goal", "change the check-in", or "/standing-bot". Rules version 9.
+description: Set up, change or create a standing bot that lives in a T3 Code thread with its memory in a folder. Use when a bot file says "Setup pending", or when asked to "set up the bot", "new bot", "change the bot's goal", "change the check-in", or "/standing-bot". Rules version 10.
 ---
 
 # standing-bot
@@ -9,7 +9,7 @@ A bot is three things: a folder, a T3 Code project on that folder, and one long-
 
 ```
 <bots root>/                 shared rules: AGENTS.md (CLAUDE.md is a symlink to it)
-  <bot>/
+  <bot>/                     its own git repository
     AGENTS.md                the bot file: purpose, goal, key results, check-ins, rules (CLAUDE.md symlink)
     NOW.md                   current view, at most 4,000 characters
     log/YYYY-MM-DD.md        append only
@@ -79,7 +79,7 @@ On confirm:
 2. Create one scheduled task per check-in that is on, with `schedule_task`: bound to this thread, the prompt exactly `Check-in: <name>. Do your scheduled-run steps.` Use `interval` for the heartbeat and `fixed_time` for daily and weekly (with `weekdays`). Monthly is a daily task: write the chosen day of the month in the "Hours / days it may run" column, and the run ends at once on any other day (shared rules, "Scheduled runs"). `timeOfDay` is in the server's time zone, which may differ from the owner's: convert if needed, check the `nextRunAt` that comes back, and write both times in the table. Record each task id in the Check-ins table.
    - `freshSession` carries the context reset. Default (once a day): `true` on the daily check-in, `false` on the others. With no daily check-in, add one more task named `reset` at 04:00 local time, `freshSession: true`, prompt `Context reset. Read NOW.md and reply "reset".` Reset at every check-in: `true` on all. Never: `false` on all.
 3. Create missing folders and files (`NOW.md`, `log/`, `notes/INDEX.md`, `procedures/`). Add the guard (section "Guard").
-4. Set "Setup: done <date>" in the bot file and commit this bot's folder only, with git (local commit only, never push).
+4. Set "Setup: done <date>" in the bot file. If the folder is not its own repository yet, make it one (section "Own repository"). Commit the folder (local commit only, never push).
 5. Tell the owner in at most 6 lines: what is on, when the next run is, what could not be reached, whether the guard is in place, and how to change anything ("just tell me").
 
 If another bot or tool still runs the same checks elsewhere, say so and leave the new heartbeat **paused** (`enabled: false`) until the owner says to switch over.
@@ -172,9 +172,18 @@ A worker runs this when a bot sees that the skill names a newer rules version th
 From any T3 thread with full access:
 
 1. Ask the name (lowercase letters, digits and hyphens) and one line on its purpose. If `<bots root>/<name>` exists, stop and say so.
-2. Create `<bots root>/<name>/` with `mkdir` (no `-p`; if it fails, stop), with a bot file that holds only `# Bot: <name>`, the purpose, and `Setup: pending`. Add `CLAUDE.md` as a symlink to `AGENTS.md`.
+2. Create `<bots root>/<name>/` with `mkdir` (no `-p`; if it fails, stop), with a bot file that holds only `# Bot: <name>`, the purpose, and `Setup: pending`. Add `CLAUDE.md` as a symlink to `AGENTS.md`. Make the folder its own repository (section "Own repository").
 3. Create a T3 project on that folder (`t3_project_create`, title `bot-<name>`) and one thread in it titled `<name>` (`t3_thread_launch`) with the message `Set up.` Give it the same runtime mode as the other bots, or as this thread when it is the first bot: a bot cannot message a bot that runs with a broader mode.
 4. Give the owner the thread link. Setup continues there.
+
+## Own repository
+
+Each bot folder is its own git repository. So T3 Code counts only this bot's files as changed in its threads, and two bots never share a git index. The bots root keeps its repository for the shared rules. Do this for a bot folder that is not its own repository yet (`git -C <bot folder> rev-parse --show-toplevel` does not give that folder): a new folder, or the bot's own folder under older rules.
+
+1. In the bots root: for a bot under older rules, first commit its folder there as before (`git add <bot>`, then `git commit -q -m "<bot>: last commit in the root" -- <bot>`). Add the line `/<bot>/` to `.gitignore` and run `git add .gitignore`. Run `git rm -r -q --cached --ignore-unmatch -- <bot>`: with `--cached` it takes the bot's files out of the root's index and leaves every file on disk. Run `git commit -q -m "<bot>: own repository"` with no path, because a path puts the files back. The older history of the files stays in the root's repository.
+2. In the bot folder: make sure that `.gitignore` has the line `tmp/` and each line of the root's `.gitignore` that is for this bot's files. For a bot on Codex, add the line from "Other coding agents" to the bot file. Run `git init`, add everything, and commit as `<bot>: own repository`. Never add a remote.
+
+If git says that another process holds a lock, wait and run the same command again. The commit in step 1 can take files that another bot staged, or find nothing to commit because another bot's commit took the change. Both are fine: go on. Never undo or change a commit in the root.
 
 ## Project brief
 
@@ -231,4 +240,4 @@ Result: at most 20 lines. Line 1: what the owner must do, or "nothing needed". T
 
 ## Other coding agents
 
-To move a bot to another agent, change the thread's provider in T3. Check after the move that the agent loads `AGENTS.md` from the folder and its parent, and that it has a worker tool and a scheduling tool; where it has not, say so instead of working around it. The guard works with Claude Code only: after a move to another agent, tell the owner that there is no guard. After a move to Claude Code, add it (section "Guard").
+To move a bot to another agent, change the thread's provider in T3. Check after the move that the agent loads `AGENTS.md` from the folder and its parent, and that it has a worker tool and a scheduling tool; where it has not, say so instead of working around it. Codex loads `AGENTS.md` only inside the bot folder's repository: for a bot on Codex, add this line under `Rules seen:` in the bot file: ``Shared rules: `../AGENTS.md`. If you do not have its heading `# Rules for every bot in this folder`, read that file now, before anything else.`` The guard works with Claude Code only: after a move to another agent, tell the owner that there is no guard. After a move to Claude Code, add it (section "Guard").
