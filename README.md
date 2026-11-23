@@ -266,7 +266,7 @@ That a bot leaves its own thread active (version 8) was tested on 2026-11-22, wi
 
 ## Rules version
 
-The rules carry a version in two places that must match: the line `Rules version: 8` in `shared-rules.md`, and the words "Rules version 8." at the end of the skill description in `SKILL.md`. Bots compare the two to find updates. The description is YAML, so it must not hold a colon followed by a space.
+The rules carry a version in two places that must match: the line `Rules version: 9` in `shared-rules.md`, and the words "Rules version 9." at the end of the skill description in `SKILL.md`. Bots compare the two to find updates. The description is YAML, so it must not hold a colon followed by a space.
 
 ## License
 

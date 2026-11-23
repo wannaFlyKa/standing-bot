@@ -1,6 +1,6 @@
 ---
 name: standing-bot
-description: Set up, change or create a standing bot that lives in a T3 Code thread with its memory in a folder. Use when a bot file says "Setup pending", or when asked to "set up the bot", "new bot", "change the bot's goal", "change the check-in", or "/standing-bot". Rules version 8.
+description: Set up, change or create a standing bot that lives in a T3 Code thread with its memory in a folder. Use when a bot file says "Setup pending", or when asked to "set up the bot", "new bot", "change the bot's goal", "change the check-in", or "/standing-bot". Rules version 9.
 ---
 
 # standing-bot
@@ -79,7 +79,7 @@ On confirm:
 2. Create one scheduled task per check-in that is on, with `schedule_task`: bound to this thread, the prompt exactly `Check-in: <name>. Do your scheduled-run steps.` Use `interval` for the heartbeat and `fixed_time` for daily and weekly (with `weekdays`). Monthly is a daily task: write the chosen day of the month in the "Hours / days it may run" column, and the run ends at once on any other day (shared rules, "Scheduled runs"). `timeOfDay` is in the server's time zone, which may differ from the owner's: convert if needed, check the `nextRunAt` that comes back, and write both times in the table. Record each task id in the Check-ins table.
    - `freshSession` carries the context reset. Default (once a day): `true` on the daily check-in, `false` on the others. With no daily check-in, add one more task named `reset` at 04:00 local time, `freshSession: true`, prompt `Context reset. Read NOW.md and reply "reset".` Reset at every check-in: `true` on all. Never: `false` on all.
 3. Create missing folders and files (`NOW.md`, `log/`, `notes/INDEX.md`, `procedures/`). Add the guard (section "Guard").
-4. Set "Setup: done <date>" in the bot file and commit the bots folder with git (local commit only, never push).
+4. Set "Setup: done <date>" in the bot file and commit this bot's folder only, with git (local commit only, never push).
 5. Tell the owner in at most 6 lines: what is on, when the next run is, what could not be reached, whether the guard is in place, and how to change anything ("just tell me").
 
 If another bot or tool still runs the same checks elsewhere, say so and leave the new heartbeat **paused** (`enabled: false`) until the owner says to switch over.
