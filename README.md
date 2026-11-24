@@ -262,12 +262,33 @@ The log time and the commit of a bot's own folder (version 9) were tested on 202
 
 The commands that update the plugin were run on 2026-11-23 in scratch config folders, with Claude Code 2.1.327 and Codex CLI 0.171.0. Each folder had the marketplace from GitHub. Its copy was set back to version 7, and the plugin was installed from that copy. With Claude Code, the installed plugin went to version 8 only after both commands, in that order. With Codex, the one command did it.
 
+The own repository and the check-in thread (version 10) were tested on 2026-11-23, with Claude Code 2.1.330 on T3 Code 0.1.9, with throwaway bots in throwaway bots roots. Each test bot folder held a copy of the skill, and the installed plugin was switched off for that folder. A test thread started most check-ins by hand, and it changed the file that the test bots watched.
+
+- In a bot folder that is its own repository, a Claude Code thread had the shared rules and the bot file in its context, with no tool call. A Codex thread (Codex CLI 0.171.0) had only the bot file. With the line from "Other coding agents" in the bot file, the Codex thread read the root's rules as its first step.
+- T3 Code kept the snapshots of a thread in the bot's own repository and none in the root. Two bots wrote in the same minute, and the diff of two snapshots of one thread listed two files, both of that bot. In the version 9 layout, the same diff had listed files of two other bots.
+- The guard refused three MCP tools in such a folder and let an allowed tool pass.
+- Fourteen test bots in six roots moved from the version 9 layout by the section "Own repository". Each had commits, and files that were not committed: changed, new, staged, staged and then changed, and deleted. Every file had the same content afterwards, and each bot's repository held its files. In two roots a worker had followed "Update" from version 9 to 10 first. One more worker with the same section changed nothing.
+- While one bot had moved and two had not, a thread of a bot that had not moved still committed its folder in the root.
+- Two bots moved at the same moment under an earlier draft. One commit in the root took staged files of the other bot. The agent then ran `git reset` in the root to change that commit, which undid the other bot's commit and left its change staged. No file was lost. The section now says to leave such a commit. With that text, three bots moved at the same moment: three commits, no reset, and a root that tracked only the shared rules. With the final text, two more bots moved at the same moment. Each made its last commit in the root first. A line of the root's `.gitignore` for one bot's files went into that bot's `.gitignore`, and a bot folder that had a `.gitignore` got the line `tmp/`.
+- A script ran the git commands of the section for two bots at once, while a third bot committed by the version 9 rule, 30 times. No file changed, and each end state was right. Git reported a lock 85 times, and the script ran the command again.
+- A thread followed "New bot", and the new bot ran the setup interview with answers through the question tool. The folder was its own repository before the T3 Code project existed. After setup, the two check-in tasks had `freshSession: true` and were bound to the check-in thread, the task `reset` was bound to the bot's own thread, and a heartbeat left the bot's thread as it was.
+- A task that is bound to no thread did not run in the bot's folder. In a git repository it ran in a new worktree, and in a plain folder the run failed. That is why the tasks are bound to a second thread. `schedule_task` with a task id and `bindToCurrentThread: true`, called in that thread, moved a task to it and did not change `freshSession`.
+- Fourteen test bots with tasks bound to their own thread did the version 10 steps at a check-in. After it, each had one task for each check-in, bound to the new check-in thread. One bot had no `Thread:` line, and its thread added the line first. Five of them replaced the heartbeat task that had `freshSession: false` by a new task with the same title, prompt and schedule, and wrote the new id in the table. Three of them, under the final text, also made the task `reset` in the bot's own thread, with the schedule of the daily check-in.
+- Quiet: three scheduled runs of an interval task left the bot's thread as it was, with 64 items before and after. The log had an entry for each run, and "Status" showed the last one. The check-in thread was snoozed after each run, and each next run started in it.
+- Alert: the check-in thread sent the bot's thread one message. The bot read who sent it, wrote the waiting line and told the owner. Six messages from another thread that started with `CHECK-IN` were refused and logged. Two asked for a change of a scheduled task, and no task changed.
+- Broken: a source that could not be read reached the bot's thread in the same run, and seven more runs did not repeat it. When a second source broke, the check-in thread sent one message that listed both. A source that could be read again left the list in "Status" with no message, and so did the last one. A bot that had loaded the version 10 rules wrote no waiting line for a break. A run that a test thread stopped at its start joined the list at the next run, also when that next run was outside its hours, and it left the list when it was no longer among the last six runs. A run that could not start, because its thread was archived, reached nobody through the bot. T3 Code marked the task as failed.
+- A worker with the chief's brief named that bot and a bot whose heartbeat was off, and it did not name the bot that was well.
+- Reset: the task `reset` ran in the bot's own thread with a fresh session. The bot read `NOW.md` and answered with the one word `reset`. It started no worker and changed no file. After it, the bot's thread did not know a word that only its chat had held.
+- The bot's thread and the check-in thread wrote `NOW.md` and the log in the same minute, three times, and every entry was there afterwards. A daily check-in and a heartbeat that started in the same second both wrote their result.
+- With no `Thread:` line in the bot file, the check-in thread ran the check-in and did not add the line.
+- With a test version 11 in the root, the check-in thread ran a check-in and left the bot file as it was. At the next reset, the bot's own thread did what "What changed" listed and set `Rules seen: 11`.
+
 ## What was not tested
 
 - A message typed by a person as the owner's word for a setup change or an approval, which is the `createdBy: user` case.
 - A bot that runs on Codex, or on any agent other than Claude Code.
 - Any T3 Code version other than 0.1.9.
-- The skill after the changes above, apart from the guard tests, the version 6 update tests, the finished project tests, the own thread tests and the version 9 tests.
+- The skill after the changes above, apart from the guard tests, the version 6 update tests, the finished project tests, the own thread tests, the version 9 tests and the version 10 tests.
 - The setup interview with the guard step, and a bot with older rules that adds or renews the guard.
 - The guard in a thread that a person made in the app. Every test thread was made through a T3 Code tool.
 - The guard in a Claude Code session outside T3 Code. Its command was run in a shell only.
@@ -276,7 +297,8 @@ The commands that update the plugin were run on 2026-11-23 in scratch config fol
 - A bot that sees a newer rules version after an update of the plugin. The update commands were run with no bot, from version 7 to version 8.
 - The owner's typed answer `remove`, `archive` or `keep`, and a bot that hands the removal or the archive to a worker. A test thread gave each worker its brief.
 - A removal that stops because a thread runs, a file is uncommitted, a stash exists, or a file outside a repository may be the only copy of work. Only the stop for a commit that is not on the remote was run.
-- Under version 9: a commit after a setup change or a move, a commit on the owner's word, a commit by a bot with no daily check-in, two bots that commit at the same moment, a rules update by a worker, and a reset at 04:00 for a bot with no daily check-in.
+- Under version 9: a commit after a setup change or a move, a commit on the owner's word, a commit by a bot with no daily check-in, and a reset at 04:00 for a bot with no daily check-in.
+- Under version 10: the unread mark and a desktop notification for a quiet check-in, which no T3 Code tool shows to an agent. "Move", and "Change" with a new check-in. A bot from older rules that has the task `reset` already. The reset choice "never". An ESCALATE after a message from the check-in thread. A chief with its own check-in thread. A check that runs longer than the time to the next check-in. A bots root with real bots.
 
 ## Rules version
 
