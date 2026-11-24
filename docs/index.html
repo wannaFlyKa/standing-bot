@@ -354,7 +354,7 @@
     </div>
   </div>
 
-  <div class="log" aria-label="An example day: what a bot says at each check-in">
+  <div class="log" aria-label="An example day: how each check-in of a bot ends">
     <div class="log-head"><span>A day with a bot</span><span class="tag">example</span></div>
     <ul>
       <li><span class="t">07:30</span><span>heartbeat</span><span class="q">off hours</span></li>
@@ -375,9 +375,9 @@
   <h2>A front desk, not a worker</h2>
   <p class="intro">The bot talks to you, keeps track and remembers. The work itself goes to workers, each in a fresh thread.</p>
 
-  <div class="flow" role="img" aria-label="Scheduled check-ins wake the bot. You talk to the bot. The bot hands work to workers and reads their results. The bot reads and writes its folder.">
+  <div class="flow" role="img" aria-label="Scheduled check-ins run in a second thread and tell the bot when something needs you. You talk to the bot. The bot hands work to workers and reads their results. The bot reads and writes its folder.">
     <div class="node solo"><b>Scheduled check-ins</b><span>heartbeat, daily, weekly, monthly</span></div>
-    <div class="link v"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M6 14l6 6 6-6"/></svg><span>wake</span></div>
+    <div class="link v"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M6 14l6 6 6-6"/></svg><span>tell</span></div>
     <div class="row">
       <div class="node"><b>You</b><span>talk in the bot's thread</span></div>
       <div class="link"><span>talk</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg></div>
@@ -392,7 +392,7 @@
   <ul class="cards">
     <li><span class="n">01</span><b>The folder is the memory</b><p>Each bot has one folder. <code>NOW.md</code> holds the current view. The log and the notes keep the rest.</p></li>
     <li><span class="n">02</span><b>The thread is the bot</b><p>One long-lived T3 Code thread talks to you and keeps track. Its chat can be reset at any time.</p></li>
-    <li><span class="n">03</span><b>Check-ins wake it</b><p>Scheduled tasks start a run. You choose which check-ins are on, and in which hours they may run.</p></li>
+    <li><span class="n">03</span><b>Check-ins run beside it</b><p>Scheduled tasks start a run in a second thread. You choose which check-ins are on, and in which hours they may run.</p></li>
     <li><span class="n">04</span><b>Workers do the work</b><p>Every check and every task goes to a fresh worker thread. The worker reports back in at most 20 lines.</p></li>
     <li><span class="n">05</span><b>You stay in charge</b><p>A bot changes its goal, rules or check-ins only on your word. It asks before it writes outward or does anything that cannot be undone.</p></li>
     <li><span class="n">06</span><b>A chief can watch the rest</b><p>One optional bot sees all the others and tells you what waits on you.</p></li>
@@ -404,15 +404,15 @@
     <div>
       <div class="eyebrow">02 / A check-in</div>
       <h2>Step by step</h2>
-      <p class="intro">A check-in is a scheduled task that wakes the bot. Most of them end with one word.</p>
+      <p class="intro">A check-in is a scheduled task. It runs in a second thread, the check-in thread. Most of them end with one word, and leave nothing in the bot's own thread.</p>
     </div>
     <ol class="steps">
-      <li>A scheduled task sends the bot its check-in.</li>
-      <li>The bot reads <code>NOW.md</code> and its check-in table. Outside its hours it answers <code>off hours</code> and stops.</li>
+      <li>A scheduled task starts the check-in in the bot's check-in thread.</li>
+      <li>That thread reads <code>NOW.md</code> and the check-in table. Outside the hours it answers <code>off hours</code> and stops.</li>
       <li>It hands the check to one worker, with the procedure to follow.</li>
       <li>The worker reports. Line 1 says what you must do, or "nothing needed".</li>
-      <li>The bot updates <code>NOW.md</code> and the log.</li>
-      <li>It speaks to you only if line 1 asks something of you. Otherwise it says <code>quiet</code>.</li>
+      <li>The check-in thread updates <code>NOW.md</code> and the log.</li>
+      <li>Only if line 1 asks something of you, or the check-in is broken, the bot tells you in its own thread. Otherwise the check-in ends with <code>quiet</code>.</li>
     </ol>
   </div>
 </section>

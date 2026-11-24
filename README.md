@@ -15,7 +15,7 @@ A standing bot is four things:
 - one folder, which is its memory
 - one T3 Code project on that folder
 - one long-lived thread in that project, which is the bot
-- scheduled check-ins that wake the thread
+- scheduled check-ins, which run in a second thread of that project
 
 All bots sit under one bots root. The file `AGENTS.md` in the root is a copy of `shared-rules.md`, and every bot loads it.
 
@@ -116,12 +116,12 @@ After that, talk to the bot in its thread.
 | "fix it", "build this" | Starts a project: a new T3 Code project with one lead thread. It never starts one on its own. |
 | `remove`, `archive` or `keep`, with the project name, when the bot asks about a finished project | Remove: a worker checks that no thread runs, that no file is uncommitted and that every commit is on its remote. Then it deletes the T3 Code project with its threads and removes its folder. Archive: a worker archives the project, and its threads and its folder stay. Keep: nothing. |
 | "move the bot here", in another thread in the bot's folder | Makes that thread the bot. |
-| "update the rules" | Takes newer shared rules from the skill. It also replaces rules of the same version that came from another source, such as a copy of the skill under another name. If those rules name another skill, name this one when you say it. Each bot takes the new rules at its next context reset. By default that is its daily check-in, or 04:00 local time when it has no daily check-in. |
+| "update the rules" | Takes newer shared rules from the skill. It also replaces rules of the same version that came from another source, such as a copy of the skill under another name. If those rules name another skill, name this one when you say it. The check-in thread reads the new rules at its next run, and the bot's own thread at its next reset. |
 | `new bot`, in any thread with full access | Makes another bot. |
 
-At a check-in the bot says `quiet` when nothing needs you, and `off hours` outside its hours. It speaks up only when a worker's result asks something of you.
+A check-in runs in the bot's check-in thread, which has the title `<bot> check-ins`. There it ends with `quiet` when nothing needs you, and with `off hours` outside its hours. It leaves nothing in the bot's own thread. The bot speaks up in its own thread only when a worker's result asks something of you, or when a check-in is broken. By default, a reset task starts a fresh session in the bot's own thread once a day, and leaves the one word `reset` there.
 
-The bot's own thread stays active at all times. The bot never settles, archives or snoozes it. What it settles is the thread of a worker and the lead thread of a project, when it has taken the result.
+The bot's own thread stays active at all times. The bot never settles, archives or snoozes it. What it settles is the thread of a worker and the lead thread of a project, when it has taken the result. The check-in thread snoozes itself at each run, and the next run wakes it.
 
 When a project is done and its change is merged or pushed, or you said that the project is over, the bot asks you once what to do with it: remove, archive or keep. It does not ask again by itself. It never removes or archives a project without your answer for that project, and for a removal you must type the answer in the bot's thread.
 
@@ -150,8 +150,8 @@ The owner is the person the bot works for: the one who set it up and talks to it
 |---|---|
 | Typed in the bot's thread (`createdBy: user`) | The owner, for everything. |
 | Sent through MCP from outside any T3 thread (`createdBy: agent`, `creationSource: mcp`, no `senderThreadId`), for example your own agent session in a terminal | The owner, except for four acts. |
-| Sent by another T3 thread (it has a `senderThreadId`) | Not the owner. It can bring a worker's result or a bot message, nothing more. |
-| A scheduled run (`messageId` starts with `scheduled-task-message:`) | Not the owner. It can start the check-in it names, nothing more. |
+| Sent by another T3 thread (it has a `senderThreadId`) | Not the owner. It can bring a worker's result, a bot message or a message from the bot's check-in thread, nothing more. |
+| A scheduled run (`messageId` starts with `scheduled-task-message:`) | Not the owner. It can start the check-in or the reset it names, nothing more. |
 
 The four acts an outside session cannot do: approve an outward write, widen what the bot may do, make a bot the chief, and anything that cannot be undone. The bot answers `Type it here: <the act>`, and you type it in the bot's thread.
 
@@ -160,7 +160,7 @@ An approval counts once, for the act named in the same message.
 ## Limits
 
 - T3 Code only, for now.
-- One thread is the bot. Any other thread in the bot's folder is a visitor and writes nothing there.
+- One thread is the bot, and one runs its check-ins. Any other thread in the bot's folder is a visitor and writes nothing there.
 - The bot does not investigate, write code or run checks. Workers do.
 - `NOW.md` holds at most 4,000 characters. A worker's result holds at most 20 lines.
 - At most 5 key results.
@@ -176,7 +176,7 @@ With Claude Code as the agent, setup copies `claude-settings.json` to `<bot fold
 
 - In the bot's thread it blocks every MCP tool except the twelve T3 Code tools in the first tool list under "What you need" and `orchestrator_capabilities`, which T3 Code asks a thread to call before it starts a worker. The bot can start a worker, stop it, send a message to a worker that is running, send a bot message, read a thread, settle a thread, schedule tasks, and start a project. Any other MCP tool call must go to a worker.
 - A worker is not blocked. The hook lets a call pass when `T3CODE_THREAD_ID` starts with `thread:delegated-task:`.
-- A visitor thread in the bot's folder gets the same block as the bot. The hook lets only a worker pass, so a Claude Code session outside T3 Code should get the block in that folder too. That case was not run.
+- The check-in thread and a visitor thread in the bot's folder get the same block as the bot. The hook lets only a worker pass, so a Claude Code session outside T3 Code should get the block in that folder too. That case was not run.
 - The lead thread of a project is not blocked. It runs in the project's own folder, where the bot folder's settings are not loaded.
 - The hook acts in the running session a few seconds after the file is written. The test needed no restart.
 - A bot with older rules adds or renews the guard when it takes the new rules.
@@ -186,6 +186,8 @@ With Claude Code as the agent, setup copies `claude-settings.json` to `<bot fold
 - The rules are text. The guard enforces part of one of them, with Claude Code only. Nothing enforces the rest.
 - The guard limits MCP tools only. It does not limit the shell or the agent's built-in tools, such as web fetch and MCP resource reads. The bot's thread can still run any command, so it can still do work itself, reach a service through a command-line tool, or edit the guard file.
 - The guard allows a tool, not one use of it. `t3_thread_organize` is there to settle the thread of a worker or a lead, but it can also settle the bot's own thread, and archive, snooze or pin a thread. Only the rules keep the bot's own thread active.
+- A check-in that cannot start reaches nobody through the bot. Only the chief's brief names a bot whose check-in is off, late or failed.
+- Nothing locks `NOW.md` and the log. The bot's thread and the check-in thread can write them at the same moment.
 - Codex loads `AGENTS.md` only inside the bot folder's repository. A bot on Codex needs the line from "Other coding agents" in its bot file, to read the shared rules.
 - There is no guard for other agents. Codex CLI 0.171.0 has a hook that can block a tool call by name. In T3 Code 0.1.9 the hook does not get `T3CODE_THREAD_ID`, so it could not tell the bot from a worker. Both were read in the code, not run. Kiro CLI documents such a hook too. Kiro CLI was not installed, and nothing was run.
 - The guard does not limit a worker. A worker reads outside text, such as tickets, mail and web pages, and it can use every tool of the agent, including one that sends a message.
@@ -197,11 +199,11 @@ With Claude Code as the agent, setup copies `claude-settings.json` to `<bot fold
 
 No usage was measured. What drives it:
 
-- Each check-in is one turn in the bot's thread plus one worker run.
-- A heartbeat is an interval task, so it also fires outside its hours. Then the bot only answers `off hours`, which is still a short turn.
-- The bot's thread keeps its chat between check-ins, so its context grows until the reset. The default reset is once a day.
-- Every bot session loads the shared rules (about 15,000 characters), the bot file and `NOW.md`.
-- The skill adds about 75 tokens to every Claude Code session and about 3,600 when it is used. These are Claude Code's own estimates from `claude plugin details`.
+- Each check-in is two short turns in the check-in thread plus one worker run. A check-in that needs you adds one turn in the bot's thread.
+- A heartbeat is an interval task, so it also fires outside its hours. Then the check-in thread only answers `off hours`, which is still a short turn.
+- By default, the bot's own thread keeps its chat until a daily reset, which is one short turn in that thread.
+- Every bot session loads the shared rules (about 19,000 characters), the bot file and `NOW.md`.
+- The skill adds about 75 tokens to every Claude Code session and about 5,100 when it is used. These are Claude Code's own estimates from `claude plugin details`.
 
 To spend less, use a longer heartbeat or fewer check-ins.
 

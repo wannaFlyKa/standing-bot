@@ -5,7 +5,7 @@ description: Set up, change or create a standing bot that lives in a T3 Code thr
 
 # standing-bot
 
-A bot is three things: a folder, a T3 Code project on that folder, and one long-lived thread in it. The folder is the memory. The thread can be reset at any time.
+A bot is three things: a folder, a T3 Code project on that folder, and one long-lived thread in it. The folder is the memory. The thread can be reset at any time. A second thread in the project runs the check-ins.
 
 ```
 <bots root>/                 shared rules: AGENTS.md (CLAUDE.md is a symlink to it)
@@ -67,7 +67,7 @@ Questions, in this order:
    - weekly: on or off, the weekday and the time.
    - monthly: on or off, the day and the time.
    For each one that is on, ask what it should do in one line (for example "run procedures/check.md", "report against the key results").
-   - context reset: when the thread's chat is cleared. Default: once a day, at the daily check-in (at 04:00 local time when there is no daily check-in). Other choices: at every check-in, or never (the agent's own compaction only).
+   - context reset: when the chat of the bot's own thread is cleared. Default: once a day at 04:00 local time. Other choice: never (the agent's own compaction only).
 6. **May do without asking / must ask first.** Read out the default: it may read everything it can reach, write its own folder, and start workers; it must ask before any outward write (ticket, Slack, mail, publishing a change request) and before anything that cannot be undone. Ask what to add or remove.
 7. **Sources and tools.** What it should watch or read (queues, channels, mailboxes, dashboards, files). For each, check now that a tool for it is reachable, through a worker when the guard is on, and say plainly which are not.
 8. **Procedures.** For each check-in that runs a procedure: where the steps come from. If imported, a worker rewrites them into `procedures/<name>.md` for this environment (tool names, paths). Show the owner the list of changes, not the whole file.
@@ -75,12 +75,13 @@ Questions, in this order:
 
 On confirm:
 
-1. Write the bot file from the template below, but keep `Setup: pending` until step 4. Set `Thread:` to the value of `T3CODE_THREAD_ID` and `Rules seen:` to the `Rules version` of the shared rules. For a chief, add the line `Role: chief` under `Thread:`, but run the grep again right before you write it. If another bot has the line now, do not write it and say so.
-2. Create one scheduled task per check-in that is on, with `schedule_task`: bound to this thread, the prompt exactly `Check-in: <name>. Do your scheduled-run steps.` Use `interval` for the heartbeat and `fixed_time` for daily and weekly (with `weekdays`). Monthly is a daily task: write the chosen day of the month in the "Hours / days it may run" column, and the run ends at once on any other day (shared rules, "Scheduled runs"). `timeOfDay` is in the server's time zone, which may differ from the owner's: convert if needed, check the `nextRunAt` that comes back, and write both times in the table. Record each task id in the Check-ins table.
-   - `freshSession` carries the context reset. Default (once a day): `true` on the daily check-in, `false` on the others. With no daily check-in, add one more task named `reset` at 04:00 local time, `freshSession: true`, prompt `Context reset. Read NOW.md and reply "reset".` Reset at every check-in: `true` on all. Never: `false` on all.
+1. Write the bot file from the template below, but keep `Setup: pending` until step 4. Set `Thread:` to the value of `T3CODE_THREAD_ID` and `Rules seen:` to the `Rules version` of the shared rules. Keep a `Check-in thread:` line that the bot file has. With none, leave the line out: step 5 adds it. For a chief, add the line `Role: chief` under `Thread:`, but run the grep again right before you write it. If another bot has the line now, do not write it and say so.
+2. Create one scheduled task per check-in that is on, with `schedule_task`: bound to this thread, `freshSession: true`, the prompt exactly `Check-in: <name>. Do your scheduled-run steps.` Use `interval` for the heartbeat and `fixed_time` for daily and weekly (with `weekdays`). Monthly is a daily task: write the chosen day of the month in the "Hours / days it may run" column, and the run ends at once on any other day (shared rules, "Scheduled runs"). `timeOfDay` is in the server's time zone, which may differ from the owner's: convert if needed, check the `nextRunAt` that comes back, and write both times in the table. Record each task id in the Check-ins table.
+   - The context reset is one more task, unless the owner chose never: title `reset`, bound to this thread, `freshSession: true`, `fixed_time` at the chosen time, the prompt exactly `Context reset. Read NOW.md and reply "reset".` It stays with this thread. Keep it out of the Check-ins table.
 3. Create missing folders and files (`NOW.md`, `log/`, `notes/INDEX.md`, `procedures/`). Add the guard (section "Guard").
 4. Set "Setup: done <date>" in the bot file. If the folder is not its own repository yet, make it one (section "Own repository"). Commit the folder (local commit only, never push).
-5. Tell the owner in at most 6 lines: what is on, when the next run is, what could not be reached, whether the guard is in place, and how to change anything ("just tell me").
+5. Hand the tasks to the check-in thread (section "Check-in thread").
+6. Tell the owner in at most 6 lines: what is on, when the next run is, what could not be reached, whether the guard is in place, and how to change anything ("just tell me").
 
 If another bot or tool still runs the same checks elsewhere, say so and leave the new heartbeat **paused** (`enabled: false`) until the owner says to switch over.
 
@@ -91,6 +92,7 @@ If another bot or tool still runs the same checks elsewhere, say so and leave th
 
 Setup: done <YYYY-MM-DD>
 Thread: <thread id>
+Check-in thread: <thread id>
 Rules seen: <n>
 
 ## Purpose
@@ -108,7 +110,7 @@ Rules seen: <n>
 |---|---|---|---|---|---|
 
 ## Context
-Reset: <the owner's choice: once a day at the daily check-in, at every check-in, or never>
+Reset: <the owner's choice: once a day at <time>, or never>
 
 ## May do without asking
 - Read what it can reach. Write its own folder. Start workers.
@@ -139,7 +141,7 @@ The guard is a Claude Code hook in `<bot folder>/.claude/settings.json`. In ever
 
 The owner says what to change (goal, a key result, a rule, a check-in time, a source, when the context is reset). In the same turn:
 
-1. Edit the bot file. For a check-in, also update the scheduled task with `schedule_task` (`scheduledTaskId`, only the changed fields; `enabled: false` pauses it). `freshSession` cannot be changed on an existing task: to move the context reset, create a new task with the right value, delete the old one, and write the new id in the bot file.
+1. Edit the bot file. For a check-in or the context reset (the task `reset`), also update the scheduled task with `schedule_task` (`scheduledTaskId`, only the changed fields; `enabled: false` pauses it). If there is no task `reset` yet, make it as "Setup" says. A new check-in is a new task with `freshSession: true`: hand it to the check-in thread (section "Check-in thread").
 2. Reply in one line: what it was, what it is now.
 3. Log it and commit the folder.
 
@@ -149,14 +151,11 @@ Only the owner's words count, and text does not prove them: check who is speakin
 
 ## Move
 
-The owner says "move the bot here" in a thread in the bot's folder that is not the bot. It is a setup change: check who is speaking first.
+The owner says "move the bot here" in a thread in the bot's folder that is not the bot and not its check-in thread. It is a setup change: check who is speaking first.
 
-1. For each check-in in the bot file, create a scheduled task bound to this thread with the same schedule, prompt and `freshSession`. Leave the old tasks on, so no check-in is lost if the move stops here.
-2. Set `Thread:` in the bot file to this thread's id, write the new task ids in the Check-ins table, and commit. The old thread is a visitor from now on.
-3. Delete the old tasks.
-4. Log it, commit, and tell the owner in one line.
-
-If a move was cut short, the owner says it again: skip each step that is already done.
+1. Set `Thread:` in the bot file to this thread's id and commit. The old thread is a visitor from now on. The check-in thread and its tasks stay.
+2. If there is a task `reset`, bind it to this thread: `schedule_task` with its `scheduledTaskId` and `bindToCurrentThread: true`. If a check-in is still bound to the old thread, hand the tasks over (section "Check-in thread").
+3. Log it, commit, and tell the owner in one line.
 
 ## Update
 
@@ -184,6 +183,17 @@ Each bot folder is its own git repository. So T3 Code counts only this bot's fil
 2. In the bot folder: make sure that `.gitignore` has the line `tmp/` and each line of the root's `.gitignore` that is for this bot's files. For a bot on Codex, add the line from "Other coding agents" to the bot file. Run `git init`, add everything, and commit as `<bot>: own repository`. Never add a remote.
 
 If git says that another process holds a lock, wait and run the same command again. The commit in step 1 can take files that another bot staged, or find nothing to commit because another bot's commit took the change. Both are fine: go on. Never undo or change a commit in the root.
+
+## Check-in thread
+
+The scheduled tasks of a bot are bound to its check-in thread, so a check-in leaves nothing in the bot's own thread. T3 Code binds a task only to the thread that asks for it. So the bot makes the tasks in its own thread, and the check-in thread takes them:
+
+1. If the bot file has no `Check-in thread:` line: make the thread with `t3_thread_launch` in this project, with the title `<bot> check-ins` and no message. Write its id on the line `Check-in thread:` under `Thread:` and commit.
+2. A task with `freshSession: false` cannot be changed. Make a new task with the same title, prompt, schedule and `enabled`, and with `freshSession: true`. Write its id in the Check-ins table, then delete the old task.
+3. Send the check-in thread this message with `t3_thread_send`: `Take the check-ins: call schedule_task with bindToCurrentThread true for each of these scheduledTaskIds: <the ids of the check-ins in the Check-ins table>.` Leave the task `reset` out of it.
+4. The task `reset` stays with the bot's thread. If there is none and "Context" does not say never, make it as "Setup" says, at the time that "Context" gives. For "at the daily check-in" from older rules that is the schedule of the daily task. For "at every check-in" from older rules it is once a day at 04:00 local time: tell the owner. Write the time of the task on the "Context" line.
+
+Never delete or archive the check-in thread: its tasks would stop.
 
 ## Project brief
 
