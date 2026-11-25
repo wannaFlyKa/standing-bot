@@ -111,7 +111,7 @@ After that, talk to the bot in its thread.
 | `set up` | Runs the setup questions. |
 | `show setup` | Prints its bot file. |
 | "change the goal to ...", "move the daily check-in to 08:30" | Edits the bot file and the scheduled task in the same turn. Says in one line what changed. The same works for key results, rules, sources and the context reset. |
-| `pause`, `resume` | Switches its check-ins off, and on again. |
+| `pause`, `resume` | Switches its check-ins and its reset task off, and on again. Its files and threads stay. |
 | "remember ...", "forget ...", "that is wrong" | Changes its notes in the same turn. |
 | "fix it", "build this" | Starts a project: a new T3 Code project with one lead thread. It never starts one on its own. |
 | `remove`, `archive` or `keep`, with the project name, when the bot asks about a finished project | Remove: a worker checks that no thread runs, that no file is uncommitted and that every commit is on its remote. Then it deletes the T3 Code project with its threads and removes its folder. Archive: a worker archives the project, and its threads and its folder stay. Keep: nothing. |
