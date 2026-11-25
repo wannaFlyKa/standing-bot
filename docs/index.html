@@ -373,7 +373,7 @@
 <section id="how">
   <div class="eyebrow">01 / How it works</div>
   <h2>A front desk, not a worker</h2>
-  <p class="intro">The bot talks to you, keeps track and remembers. The work itself goes to workers, each in a fresh thread.</p>
+  <p class="intro">The bot talks to you, keeps track and remembers. The work it hands out goes to workers, each in a fresh thread.</p>
 
   <div class="flow" role="img" aria-label="Scheduled check-ins run in a second thread and tell the bot when something needs you. You talk to the bot. The bot hands work to workers and reads their results. The bot reads and writes its folder.">
     <div class="node solo"><b>Scheduled check-ins</b><span>heartbeat, daily, weekly, monthly</span></div>
@@ -392,8 +392,8 @@
   <ul class="cards">
     <li><span class="n">01</span><b>The folder is the memory</b><p>Each bot has one folder. <code>NOW.md</code> holds the current view. The log and the notes keep the rest.</p></li>
     <li><span class="n">02</span><b>The thread is the bot</b><p>One long-lived T3 Code thread talks to you and keeps track. Its chat can be reset at any time.</p></li>
-    <li><span class="n">03</span><b>Check-ins run beside it</b><p>Scheduled tasks start a run in a second thread. You choose which check-ins are on, and in which hours they may run.</p></li>
-    <li><span class="n">04</span><b>Workers do the work</b><p>Every check and every task goes to a fresh worker thread. The worker reports back in at most 20 lines.</p></li>
+    <li><span class="n">03</span><b>Check-ins run beside it</b><p>Scheduled tasks start a run in a second thread, which does the check itself. You choose which check-ins are on, and in which hours they may run.</p></li>
+    <li><span class="n">04</span><b>Workers do the work</b><p>Every other task goes to a fresh worker thread. The worker reports back in at most 20 lines.</p></li>
     <li><span class="n">05</span><b>You stay in charge</b><p>A bot changes its goal, rules or check-ins only on your word. It asks before it writes outward or does anything that cannot be undone.</p></li>
     <li><span class="n">06</span><b>A chief can watch the rest</b><p>One optional bot sees all the others and tells you what waits on you.</p></li>
   </ul>
@@ -409,10 +409,9 @@
     <ol class="steps">
       <li>A scheduled task starts the check-in in the bot's check-in thread.</li>
       <li>That thread reads <code>NOW.md</code> and the check-in table. Outside the hours it answers <code>off hours</code> and stops.</li>
-      <li>It hands the check to one worker, with the procedure to follow.</li>
-      <li>The worker reports. Line 1 says what you must do, or "nothing needed".</li>
-      <li>The check-in thread updates <code>NOW.md</code> and the log.</li>
-      <li>Only if line 1 asks something of you, or the check-in is broken, the bot tells you in its own thread. Otherwise the check-in ends with <code>quiet</code>.</li>
+      <li>It does the check itself, by the procedure in the table. Each run is a fresh session, and no worker is started.</li>
+      <li>It updates <code>NOW.md</code> and the log.</li>
+      <li>Only if the check asks something of you, or the check-in is broken, the bot tells you in its own thread. Otherwise the check-in ends with <code>quiet</code>.</li>
     </ol>
   </div>
 </section>
@@ -432,7 +431,7 @@
       <div class="r d2"><span class="p">   ├─ NOW.md</span><span class="c">the current view, at most 4,000 characters</span></div>
       <div class="r d2"><span class="p">   ├─ log/2026-11-20.md</span><span class="c">append only</span></div>
       <div class="r d2"><span class="p">   ├─ notes/</span><span class="c">lasting knowledge</span></div>
-      <div class="r d2"><span class="p">   └─ procedures/</span><span class="c">step files a worker follows</span></div>
+      <div class="r d2"><span class="p">   └─ procedures/</span><span class="c">step files for a check or a worker</span></div>
     </div>
   </div>
 </section>

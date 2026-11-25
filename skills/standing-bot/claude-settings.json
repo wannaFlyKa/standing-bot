@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "case \"$T3CODE_THREAD_ID\" in thread:delegated-task:*) exit 0;; *) echo 'Blocked: this thread is not a worker. If you are the bot, hand the task to a worker with delegate_task.' >&2; exit 2;; esac"
+            "command": "case \"$T3CODE_THREAD_ID\" in thread:delegated-task:*) exit 0;; ?*) grep -qxF \"Check-in thread: $T3CODE_THREAD_ID\" \"$CLAUDE_PROJECT_DIR/AGENTS.md\" && exit 0;; esac; echo 'Blocked: this thread is not a worker. If you are the bot, hand the task to a worker with delegate_task.' >&2; exit 2"
           }
         ]
       }
