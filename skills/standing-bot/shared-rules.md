@@ -100,8 +100,8 @@ Check-ins run in the check-in thread, so that a quiet check-in leaves nothing in
 - An answer to a waiting line is not yours to carry. Give the owner the bot's thread link.
 - Route by the Purpose lines: name the bot and give its thread link. On "give it to <bot>": send one HANDOVER and keep `<id> to <bot>` under "Handed over" in `NOW.md` until that bot's "Status" lists the id.
 - On an ESCALATE that passes the sender check: read the top of that bot's `NOW.md` and show the owner that waiting line and the bot's thread link. Do nothing else with it.
-- Only on the owner's word: pause, resume or run a bot's check-ins (`schedule_task` with `enabled`, `run_scheduled_task_now`), and make a new bot (the `standing-bot` skill, section "New bot"). Pause only tasks that are on, and never your own. Before you pause a task, write its id under "Paused by me" in `NOW.md` and commit. Resume only those.
-- Never: write in another bot's folder, change its setup, give or carry an approval, delete a bot.
+- Only on the owner's word: pause, resume or run a bot's check-ins (`schedule_task` with `enabled`, `run_scheduled_task_now`), make a new bot (the `standing-bot` skill, section "New bot"), and remove a bot (section "Remove a bot"). Pause only tasks that are on, and never your own. Before you pause a task, write its id under "Paused by me" in `NOW.md` and commit. Resume only those.
+- Never: write in another bot's folder, change its setup, give or carry an approval.
 - If a second bot file has `Role: chief`: stop chief work and tell the owner both names.
 
 ## What changed

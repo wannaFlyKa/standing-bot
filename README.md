@@ -36,7 +36,7 @@ One optional chief bot sees the other bots and tells you what waits on you.
 
 The whole behaviour is two Markdown files and one settings file. There is no other code.
 
-- `skills/standing-bot/SKILL.md`: setup, change, move, update, new bot, project brief, project removal
+- `skills/standing-bot/SKILL.md`: setup, change, move, update, new bot, bot removal, project brief, project removal
 - `skills/standing-bot/shared-rules.md`: how every bot behaves
 - `skills/standing-bot/claude-settings.json`: the guard for Claude Code
 
@@ -45,7 +45,7 @@ The whole behaviour is two Markdown files and one settings file. There is no oth
 - [T3 Code](https://github.com/pingdotgg/t3code) with a coding agent set up in it. Claude Code is the one that was tested.
 - git. The bots root and each bot folder are local git repositories.
 - These T3 Code tools, which an agent has inside a T3 thread: `schedule_task`, `list_scheduled_tasks`, `run_scheduled_task_now`, `delete_scheduled_task`, `delegate_task`, `task_cancel`, `t3_thread_launch`, `t3_thread_send`, `t3_thread_read`, `t3_thread_organize`, `t3_project_create`, `t3_project_list`.
-- For the worker that removes or archives a finished project: `t3_project_read`, `t3_thread_list`, `t3_project_delete`, `t3_project_update`.
+- For the worker that removes a bot, or removes or archives a finished project: `t3_project_read`, `t3_thread_list`, `t3_project_delete`, `t3_project_update`.
 - The environment variable `T3CODE_THREAD_ID`.
 - For the guard: the T3 Code MCP server is named `t3-code`, the thread id of a worker starts with `thread:delegated-task:`, and a hook command gets `CLAUDE_PROJECT_DIR`.
 - These fields on T3 messages: `createdBy`, `creationSource`, `senderThreadId`, `messageId`, `runId`, `activeRunId`.
@@ -118,6 +118,7 @@ After that, talk to the bot in its thread.
 | "move the bot here", in another thread in the bot's folder | Makes that thread the bot. |
 | "update the rules" | Takes newer shared rules from the skill. It also replaces rules of the same version that came from another source, such as a copy of the skill under another name. If those rules name another skill, name this one when you say it. The check-in thread reads the new rules at its next run, and the bot's own thread at its next reset. |
 | `new bot`, in any thread with full access | Makes another bot. |
+| "remove the bot <name>", typed in a thread with full access outside that bot's project, such as the chief's | A worker deletes the bot's scheduled tasks, its T3 Code project with every thread, its folder and its line in the root's `.gitignore`. It reports the open state that was dropped and the projects of the bot that stay. It cannot be undone. A bot cannot remove itself. |
 
 A check-in runs in the bot's check-in thread, which has the title `<bot> check-ins`. That thread does the check itself and starts no worker. It ends with `quiet` when nothing needs you, and with `off hours` outside its hours. It leaves nothing in the bot's own thread. The bot speaks up in its own thread only when a check or a worker's result asks something of you, or when a check-in is broken. By default, a reset task starts a fresh session in the bot's own thread once a day, and leaves the one word `reset` there.
 
@@ -136,9 +137,9 @@ The chief:
 - names the right bot for a request and gives you its thread link
 - sends one HANDOVER message when you say "give it to <bot>"
 - shows you a question that a bot escalated. A bot escalates once, when it has asked you 3 times and the answer is due within 24 hours
-- pauses, resumes or runs a bot's check-ins, and makes a new bot, only on your word
+- pauses, resumes or runs a bot's check-ins, makes a new bot, and removes a bot through one worker, only on your word. For a removal you must type it
 
-The chief never writes in another bot's folder, changes its setup, gives or carries an approval, or deletes a bot. It does no bot's work.
+The chief never writes in another bot's folder, changes its setup, or gives or carries an approval. It does no bot's work.
 
 With two chiefs there is no chief. Chief work stops and you are told both names.
 

@@ -1,6 +1,6 @@
 ---
 name: standing-bot
-description: Set up, change or create a standing bot that lives in a T3 Code thread with its memory in a folder. Use when a bot file says "Setup pending", or when asked to "set up the bot", "new bot", "change the bot's goal", "change the check-in", or "/standing-bot". Rules version 11.
+description: Set up, change or create a standing bot that lives in a T3 Code thread with its memory in a folder. Use when a bot file says "Setup pending", or when asked to "set up the bot", "new bot", "change the bot's goal", "change the check-in", "remove the bot", or "/standing-bot". Rules version 11.
 ---
 
 # standing-bot
@@ -242,6 +242,30 @@ Then:
 8. List, do not delete, anything else the project left outside its folder. With Claude Code that includes its session files: a folder under `~/.claude/projects` named after the path.
 
 Result: at most 20 lines. Line 1: what the owner must do, or "nothing needed". Then: what each check found, what was removed, what was left.
+```
+
+## Remove a bot
+
+A removal cannot be undone: the folder is the only copy of the bot's memory. The owner types "remove the bot <name>" in a thread with full access outside that bot's project, such as the chief's. A bot cannot remove itself, because the removal deletes its thread. The thread that gets the words checks who is speaking (shared rules): only `createdBy: user` counts, for that one bot and one time. It removes nothing itself. It hands one worker this brief, filled in:
+
+```markdown
+Remove the bot "<bot>". The owner approved this removal. The owner's words, quoted: "<the words>"
+
+Bot: folder <full path>, T3 project id <id>, title <title>
+
+Checks first. If one fails or cannot be done, stop, delete nothing, and report which one:
+1. The folder is a direct child of the bots root and its `AGENTS.md` starts with `# Bot: <bot>`. The project with that id has that title and that folder (`t3_project_read`), no other project has its workspace in or under that folder (`t3_project_list`), and you do not run in it.
+2. No thread of the project runs or is queued (`t3_thread_list` with `includeSubagents`, every page).
+
+Then:
+3. Copy into your result, from the bot's `NOW.md` and log: "Waiting on the owner", the work in flight, and each project that the bot started (T3 project id and folder). The removal drops the first two.
+4. Switch off every scheduled task of the project that is on (`list_scheduled_tasks`, `schedule_task` with `enabled: false`), so that no new run starts. Do check 2 again. If it fails, switch them on again and stop.
+5. Delete the scheduled tasks (`delete_scheduled_task`), then the T3 project with its threads (`t3_project_delete` with `force`). If the project is still there, stop.
+6. Remove the folder by that one full path, with no wildcard. In the bots root, take the line `/<bot>/` out of `.gitignore` and commit only that file as `<bot>: removed`.
+7. Verify: the project id is gone (`t3_project_read`), the folder is gone, and each other bot folder and project is as it was before.
+8. List, do not delete, what the bot left elsewhere: the projects from step 3 that still exist, and with Claude Code its session files, a folder under `~/.claude/projects` named after the path.
+
+Result: at most 20 lines. Line 1: what the owner must do, or "nothing needed". Then: what was removed, what open state was dropped, what was left.
 ```
 
 ## Reset and context
