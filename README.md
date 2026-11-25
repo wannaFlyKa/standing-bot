@@ -163,7 +163,7 @@ An approval counts once, for the act named in the same message.
 - T3 Code only, for now.
 - One thread is the bot, and one runs its check-ins. Any other thread in the bot's folder is a visitor and writes nothing there.
 - The bot does not investigate, write code or run checks. Workers do, and the check-in thread runs the checks.
-- `NOW.md` holds at most 4,000 characters. A worker's result holds at most 20 lines.
+- `NOW.md` holds at most 4,000 characters. A log entry says what and why in at most 300 characters. A worker's result holds at most 20 lines.
 - At most 5 key results.
 - The bot asks you before it starts a third project while two are in flight.
 - Bots send each other two kinds of message only: HANDOVER from the chief to a bot, and ESCALATE from a bot to the chief. Neither is answered by message.
