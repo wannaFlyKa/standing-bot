@@ -288,12 +288,29 @@ The own repository and the check-in thread (version 10) were tested on 2026-11-2
 - With no `Thread:` line in the bot file, the check-in thread ran the check-in and did not add the line.
 - With a test version 11 in the root, the check-in thread ran a check-in and left the bot file as it was. At the next reset, the bot's own thread did what "What changed" listed and set `Rules seen: 11`.
 
+The check-in without a worker, the bot removal and the other rules of version 11 were tested on 2026-11-25, with Claude Code 2.1.330 on T3 Code 0.1.9, with two throwaway bots in one throwaway bots root. One of them was the chief. Each test bot folder held a copy of the skill, and the installed plugin was switched off for that folder. A test thread started the check-ins by hand and changed the file that the test bot watched. The bot file of a test bot said that a message from the test thread counts as typed by the owner.
+
+- Quiet: the check-in thread did the check itself, in one run. Its procedure called an MCP tool that the guard blocks in the bot's thread, and the call passed. The project had the same two threads before and after, and the bot's thread had 6 items before and after. "Status" and the log showed the run.
+- Alert: the check-in thread sent the bot's thread one `CHECK-IN` message. The bot read who sent it, wrote the waiting line and told the owner.
+- Guard: the same tool call was refused in the bot's own thread. The bot handed it to a worker, and the worker's call passed. With the version 10 guard file and the version 11 rules, the call was refused in the check-in thread, and that thread handed the check to one worker. With the new guard file back, the next run did the check itself.
+- Broken: a test thread stopped a run of the check-in thread in the middle of its check. The next run told the bot's thread once, and two more runs did not repeat it.
+- A check that runs past its next start: an interval task fired three times while a run of the check-in thread was still running. T3 Code queued all three, and each did the check again when the run before it had ended. A snooze was refused while a run was queued, and the last run snoozed the thread.
+- A reset task and a `CHECK-IN` message that came while the bot's thread was in the middle of a turn were queued. They ran after the turn, in the order in which they came.
+- The chief's daily brief ran in its check-in thread with no worker, and one `CHECK-IN` message reached the chief's thread.
+- A worker's result arrived after a reset of the bot's thread. The bot took it from its line under "In flight": it wrote the pointer and the log entry, and it settled the worker's thread.
+- `NOW.md` held five finished results, and a sixth one took the place of the oldest. Of 26 log entries, 24 said what and why in at most 300 characters. The longest had 451.
+- A worker's result asked the owner to choose. The bot wrote the waiting line and a line under "In flight" with the thread link, and it took both out on the owner's answer.
+- A finished worker's thread ended two more runs. At the first, the bot wrote one line under "In flight" and told the owner. At the second it wrote no log entry and answered three words. The test thread wrote in the worker's thread, and a background command of the worker ended each of those runs. A message from the test thread alone did not wake the bot's thread.
+- "Pause" switched off the daily check-in and the task `reset`, and wrote `paused` in the table and on the "Context" line. A heartbeat that was off stayed off. "Resume" switched on those two only. Each task kept its bound thread.
+- The bot pinned the lead thread of a new project, and it settled that thread when it had taken the result. T3 Code's own store showed the pin, and then no pin.
+- Removal: a message from another thread that said it was the owner was refused by the chief, and nothing was removed. On the words "remove the bot <name>" from the test thread, the chief handed one worker the brief. The worker deleted the bot's three scheduled tasks, its project with six threads, its folder and its line in the root's `.gitignore`, which it committed. It reported the two open items that were dropped, and it listed the project that the bot had started and the session files. The other bot, that project and every other T3 Code project were as before.
+
 ## What was not tested
 
 - A message typed by a person as the owner's word for a setup change or an approval, which is the `createdBy: user` case.
 - A bot that runs on Codex, or on any agent other than Claude Code.
 - Any T3 Code version other than 0.1.9.
-- The skill after the changes above, apart from the guard tests, the version 6 update tests, the finished project tests, the own thread tests, the version 9 tests and the version 10 tests.
+- The skill after the changes above, apart from the guard tests, the version 6 update tests, the finished project tests, the own thread tests, the version 9 tests, the version 10 tests and the version 11 tests.
 - The setup interview with the guard step, and a bot with older rules that adds or renews the guard.
 - The guard in a thread that a person made in the app. Every test thread was made through a T3 Code tool.
 - The guard in a Claude Code session outside T3 Code. Its command was run in a shell only.
@@ -303,7 +320,8 @@ The own repository and the check-in thread (version 10) were tested on 2026-11-2
 - The owner's typed answer `remove`, `archive` or `keep`, and a bot that hands the removal or the archive to a worker. A test thread gave each worker its brief.
 - A removal that stops because a thread runs, a file is uncommitted, a stash exists, or a file outside a repository may be the only copy of work. Only the stop for a commit that is not on the remote was run.
 - Under version 9: a commit after a setup change or a move, a commit on the owner's word, a commit by a bot with no daily check-in, and a reset at 04:00 for a bot with no daily check-in.
-- Under version 10: the unread mark and a desktop notification for a quiet check-in, which no T3 Code tool shows to an agent. "Move", and "Change" with a new check-in. A bot from older rules that has the task `reset` already. The reset choice "never". An ESCALATE after a message from the check-in thread. A chief with its own check-in thread. A check that runs longer than the time to the next check-in. A bots root with real bots.
+- Under version 10: the unread mark and a desktop notification for a quiet check-in, which no T3 Code tool shows to an agent. "Move", and "Change" with a new check-in. A bot from older rules that has the task `reset` already. The reset choice "never". An ESCALATE after a message from the check-in thread. A bots root with real bots.
+- Under version 11: a message typed by a person in a worker's thread, and the typed words "remove the bot". What the sidebar shows for a pinned lead thread. A removal that stops at a check. A removal that starts in a thread that is not the chief's. The chief's "what needs me?" through a worker. A bot that moves from version 10 to version 11.
 
 ## Rules version
 
