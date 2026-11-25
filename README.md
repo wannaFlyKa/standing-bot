@@ -113,6 +113,7 @@ After that, talk to the bot in its thread.
 | "change the goal to ...", "move the daily check-in to 08:30" | Edits the bot file and the scheduled task in the same turn. Says in one line what changed. The same works for key results, rules, sources and the context reset. |
 | `pause`, `resume` | Switches its check-ins and its reset task off, and on again. Its files and threads stay. |
 | "remember ...", "forget ...", "that is wrong" | Changes its notes in the same turn. |
+| "what is open?" | Lists the threads that still wait on you or that you continue by hand, each with its link. A worker thread has no row in the T3 Code sidebar. |
 | "fix it", "build this" | Starts a project: a new T3 Code project with one lead thread. It never starts one on its own. |
 | `remove`, `archive` or `keep`, with the project name, when the bot asks about a finished project | Remove: a worker checks that no thread runs, that no file is uncommitted and that every commit is on its remote. Then it deletes the T3 Code project with its threads and removes its folder. Archive: a worker archives the project, and its threads and its folder stay. Keep: nothing. |
 | "move the bot here", in another thread in the bot's folder | Makes that thread the bot. |
@@ -122,7 +123,7 @@ After that, talk to the bot in its thread.
 
 A check-in runs in the bot's check-in thread, which has the title `<bot> check-ins`. That thread does the check itself and starts no worker. It ends with `quiet` when nothing needs you, and with `off hours` outside its hours. It leaves nothing in the bot's own thread. The bot speaks up in its own thread only when a check or a worker's result asks something of you, or when a check-in is broken. By default, a reset task starts a fresh session in the bot's own thread once a day, and leaves the one word `reset` there.
 
-The bot's own thread stays active at all times. The bot never settles, archives or snoozes it. What it settles is the thread of a worker and the lead thread of a project, when it has taken the result. The check-in thread snoozes itself at each run, and the next run wakes it.
+The bot's own thread stays active at all times. The bot never settles, archives or snoozes it. What it settles is the thread of a worker and the lead thread of a project, when it has taken the result. It pins the lead thread until then. The check-in thread snoozes itself at each run, and the next run wakes it.
 
 When a project is done and its change is merged or pushed, or you said that the project is over, the bot asks you once what to do with it: remove, archive or keep. It does not ask again by itself. It never removes or archives a project without your answer for that project, and for a removal you must type the answer in the bot's thread.
 
@@ -189,6 +190,7 @@ With Claude Code as the agent, setup copies `claude-settings.json` to `<bot fold
 - The guard limits MCP tools only. It does not limit the shell or the agent's built-in tools, such as web fetch and MCP resource reads. The bot's thread can still run any command, so it can still do work itself, reach a service through a command-line tool, or edit the guard file.
 - The guard allows a tool, not one use of it. `t3_thread_organize` is there to settle the thread of a worker or a lead, but it can also settle the bot's own thread, and archive, snooze or pin a thread. Only the rules keep the bot's own thread active.
 - A check-in that cannot start reaches nobody through the bot. Only the chief's brief names a bot whose check-in is off, late or failed.
+- A worker thread has no row in the T3 Code sidebar, and the app's search does not find it. The way to it is its link, which the bot keeps under "In flight" while the thread still matters.
 - When a check runs past its next start, T3 Code 0.1.9 queues each start. The queued runs then do the check again, one after the other.
 - Nothing locks `NOW.md` and the log. The bot's thread and the check-in thread can write them at the same moment.
 - Codex loads `AGENTS.md` only inside the bot folder's repository. A bot on Codex needs the line from "Other coding agents" in its bot file, to read the shared rules.
